@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxplay TV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        #movie-section {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px;
+            gap: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .movie-card {
+            width: 200px;
+            flex-shrink: 0;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+        }
+        .movie-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bem-vindo ao Maxplay TV</h1>
+    </header>
+
+    <!-- Seção de Filmes -->
+    <section id="movie-section">
+        <h2>Filmes para assistir hoje</h2>
+    </section>
+
+    <script>
+        const apiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
+        const xmlUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml";
+
+        async function getMovies() {
+            try {
+                const response = await fetch(xmlUrl);
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                // Canais permitidos
+                const allowedChannels = ["Telecine Action", "Telecine Premium", "Megapix", "Space", "Paramount"];
+                const programs = xmlDoc.getElementsByTagName("programme");
+                let movieList = [];
+
+                for (let program of programs) {
+                    const channel = program.getAttribute("channel");
+                    const title = program.getElementsByTagName("title")[0]?.textContent;
+                    const start = program.getAttribute("start");
+                    const rating = program.getElementsByTagName("rating")[0]?.textContent || "N/A";
+
+                    const hour = parseInt(start.substring(8, 10));
+                    if (allowedChannels.includes(channel) && hour >= 11 && hour <= 20) {
+                        movieList.push({ title, start, rating, channel });
+                    }
+                }
+
+                movieList = movieList.sort(() => 0.5 - Math.random()).slice(0, 15);
+                const moviesWithImages = await fetchMovieImages(movieList);
+                displayMovies(moviesWithImages);
+            } catch (error) {
+                console.error("Erro ao buscar os filmes:", error);
+            }
+        }
+
+        async function fetchMovieImages(movies) {
+            const updatedMovies = [];
+
+            for (const movie of movies) {
+                const tmdbUrl = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(movie.title)}`;
+                try {
+                    const response = await fetch(tmdbUrl);
+                    const data = await response.json();
+
+                    if (data.results.length > 0) {
+                        movie.image = `https://image.tmdb.org/t/p/w500${data.results[0].poster_path}`;
+                    } else {
+                        movie.image = "default.jpg";
+                    }
+                    updatedMovies.push(movie);
+                } catch (error) {
+                    console.error("Erro ao buscar imagem do filme:", error);
+                }
+            }
+            return updatedMovies;
+        }
+
+        function displayMovies(movies) {
+            const movieContainer = document.getElementById("movie-section");
+            movieContainer.innerHTML = "";
+
+            movies.forEach(movie => {
+                const card = `
+                    <div class="movie-card">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <h3>${movie.title}</h3>
+                        <p>${movie.start.substring(8, 10)}:${movie.start.substring(10, 12)}</p>
+                        <p>Classificação: ${movie.rating}</p>
+                    </div>
+                `;
+                movieContainer.innerHTML += card;
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", getMovies);
+    </script>
+</body>
+</html>
