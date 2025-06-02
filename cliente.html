@@ -219,52 +219,7 @@
   <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
   <div id="filmes" class="flex gap-4 overflow-x-auto pb-4"></div>
 </section>
-    <!-- JOGOS DE HOJE -->
-<section class="mt-10 px-4">
-  <h2 class="text-xl font-bold text-orange-500 mb-4">⚽ Jogos de Hoje</h2>
-  <div id="jogos-container" class="flex overflow-x-auto gap-4 pb-4"></div>
-</section>
-
-<style>
-  .jogo-card {
-    min-width: 200px;
-    background-color: #1e293b;
-    border-radius: 10px;
-    padding: 12px;
-    color: white;
-    font-family: sans-serif;
-    flex-shrink: 0;
-    box-shadow: 0 0 8px #00000040;
-    text-align: center;
-  }
-  .jogo-card img {
-    height: 48px;
-    width: 48px;
-    object-fit: contain;
-  }
-  .escudos {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .jogo-card .vs {
-    font-size: 16px;
-    font-weight: bold;
-    color: #ff6b00;
-  }
-  .status {
-    font-size: 0.75rem;
-    margin-top: 4px;
-    color: #ff6b00;
-  }
-  .info {
-    font-size: 0.85rem;
-    color: #cbd5e1;
-  }
-</style>
-
-<script>
+    <script>
   const canaisFutebol = [
     "ESPN", "ESPN 2", "ESPN 3", "ESPN 4",
     "SporTV", "SporTV 2", "SporTV 3",
@@ -273,16 +228,20 @@
   ];
 
   const horaAtual = new Date().getHours();
+  const container = document.getElementById("jogos-container");
+
   if (horaAtual >= 7 && horaAtual <= 15) {
+    // Atualiza os dados e salva no localStorage
     fetch('https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml')
       .then(res => res.text())
       .then(xml => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(xml, "text/xml");
         const programas = doc.querySelectorAll("programme");
-        const container = document.getElementById("jogos-container");
 
+        const jogosHoje = [];
         let delay = 0;
+
         programas.forEach(p => {
           const canal = p.getAttribute("channel");
           const titulo = p.querySelector("title")?.textContent || "";
@@ -295,7 +254,7 @@
           if (fim < agora) return;
 
           const [time1, time2] = titulo.split(/ x | vs /i);
-          const tempoRestante = inicio - agora;
+          const tempoRestante = inicio.getTime() - agora.getTime();
           let status = "";
 
           if (agora >= inicio && agora <= fim) {
@@ -304,47 +263,76 @@
             status = "🕒 Em breve";
           }
 
+          jogosHoje.push({ time1, time2, canal, inicio, status });
+
           setTimeout(() => {
             Promise.all([buscarEscudo(time1.trim()), buscarEscudo(time2.trim())]).then(([escudo1, escudo2]) => {
-              const card = document.createElement("div");
-              card.className = "jogo-card";
-              card.innerHTML = `
-                <div class="escudos">
-                  <img src="${escudo1}" alt="${time1}">
-                  <span class="vs">X</span>
-                  <img src="${escudo2}" alt="${time2}">
-                </div>
-                <div class="info">${time1} x ${time2}</div>
-                <div class="info">${canal} – ${formatarHora(inicio)}</div>
-                ${status ? `<div class="status">${status}</div>` : ""}
-              `;
+              const card = criarCard(time1, time2, canal, inicio, status, escudo1, escudo2);
               container.appendChild(card);
             });
           }, delay);
-          delay += 35000; // 35s por par de escudos (limite da API)
+          delay += 35000;
         });
+
+        // Salva no localStorage
+        setTimeout(() => {
+          localStorage.setItem("jogosHoje", JSON.stringify(jogosHoje));
+          localStorage.setItem("jogosData", new Date().toDateString());
+        }, delay + 500);
       });
+  } else {
+    // Horário fora da faixa: tenta recuperar os jogos salvos
+    const dataSalva = localStorage.getItem("jogosData");
+    const jogosSalvos = JSON.parse(localStorage.getItem("jogosHoje") || "[]");
 
-    function parseEPGTime(str) {
-      const ano = str.slice(0, 4);
-      const mes = str.slice(4, 6);
-      const dia = str.slice(6, 8);
-      const hora = str.slice(9, 11);
-      const minuto = str.slice(11, 13);
-      return new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
+    if (dataSalva === new Date().toDateString()) {
+      jogosSalvos.forEach((jogo, i) => {
+        setTimeout(() => {
+          Promise.all([buscarEscudo(jogo.time1.trim()), buscarEscudo(jogo.time2.trim())]).then(([escudo1, escudo2]) => {
+            const card = criarCard(jogo.time1, jogo.time2, jogo.canal, new Date(jogo.inicio), jogo.status, escudo1, escudo2);
+            container.appendChild(card);
+          });
+        }, i * 35000);
+      });
     }
+  }
 
-    function formatarHora(data) {
-      return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
+  function criarCard(time1, time2, canal, inicio, status, escudo1, escudo2) {
+    const card = document.createElement("div");
+    card.className = "jogo-card";
+    card.innerHTML = `
+      <div class="escudos">
+        <img src="${escudo1}" alt="${time1}">
+        <span class="vs">X</span>
+        <img src="${escudo2}" alt="${time2}">
+      </div>
+      <div class="info">${time1} x ${time2}</div>
+      <div class="info">${canal} – ${formatarHora(new Date(inicio))}</div>
+      ${status ? `<div class="status">${status}</div>` : ""}
+    `;
+    return card;
+  }
 
-    function buscarEscudo(time) {
-      const nome = encodeURIComponent(time);
-      return fetch(`https://www.thesportsdb.com/api/v1/json/1/searchteams.php?t=${nome}`)
-        .then(r => r.json())
-        .then(data => data.teams?.[0]?.strTeamBadge || "https://via.placeholder.com/48x48");
-    }
+  function parseEPGTime(str) {
+    const ano = str.slice(0, 4);
+    const mes = str.slice(4, 6);
+    const dia = str.slice(6, 8);
+    const hora = str.slice(9, 11);
+    const minuto = str.slice(11, 13);
+    return new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
+  }
 
+  function formatarHora(data) {
+    return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  function buscarEscudo(time) {
+    const nome = encodeURIComponent(time);
+    return fetch(`https://www.thesportsdb.com/api/v1/json/1/searchteams.php?t=${nome}`)
+      .then(r => r.json())
+      .then(data => data.teams?.[0]?.strTeamBadge || "https://via.placeholder.com/48x48");
+  }
+</script>
 </script>
 <script>
 const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
