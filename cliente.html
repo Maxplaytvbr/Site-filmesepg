@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaxPlay TV - Guia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MaxPlay TV - Guia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -17,7 +18,7 @@
             }
         }
     </script>
-    <style>
+<style>
         body {
             background-color: #0f172a;
             color: #f8fafc;
@@ -214,431 +215,114 @@
     </style>
 </head>
 <body>
-
-<section id="filmes-destaque" class="px-4 py-6 text-white">
-  <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
-  <div id="filmes" class="flex gap-4 overflow-x-auto pb-4"></div>
-</section>
-    <!-- JOGOS DE HOJE -->
-<section class="mt-10 px-4">
-  <h2 class="text-xl font-bold text-orange-500 mb-4">⚽ Jogos de Hoje</h2>
-  <div id="jogos-container" class="flex overflow-x-auto gap-4 pb-4"></div>
+<section class="px-4 py-6 text-white" id="filmes-destaque">
+<h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
+<div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
 </section>
 
-<style>
-  .jogo-card {
-    min-width: 200px;
-    background-color: #1e293b;
-    border-radius: 10px;
-    padding: 12px;
-    color: white;
-    font-family: sans-serif;
-    flex-shrink: 0;
-    box-shadow: 0 0 8px #00000040;
-    text-align: center;
-  }
-  .jogo-card img {
-    height: 48px;
-    width: 48px;
-    object-fit: contain;
-  }
-  .escudos {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .jogo-card .vs {
-    font-size: 16px;
-    font-weight: bold;
-    color: #ff6b00;
-  }
-  .status {
-    font-size: 0.75rem;
-    margin-top: 4px;
-    color: #ff6b00;
-  }
-  .info {
-    font-size: 0.85rem;
-    color: #cbd5e1;
-  }
-</style>
-
-<script>
-  const canaisFutebol = [
-    "ESPN", "ESPN 2", "ESPN 3", "ESPN 4",
-    "SporTV", "SporTV 2", "SporTV 3",
-    "TNT Sports", "Space", "Premiere",
-    "Bandsports", "Nosso Futebol"
-  ];
-
-  const horaAtual = new Date().getHours();
-  if (horaAtual >= 0 && horaAtual <= 23) {
-    fetch('https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml')
-      .then(res => res.text())
-      .then(xml => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(xml, "text/xml");
-        const programas = doc.querySelectorAll("programme");
-        const container = document.getElementById("jogos-container");
-
-        let delay = 0;
-        programas.forEach(p => {
-          const canal = p.getAttribute("channel");
-          const titulo = p.querySelector("title")?.textContent || "";
-          const inicio = parseEPGTime(p.getAttribute("start"));
-          const fim = parseEPGTime(p.getAttribute("stop"));
-          const agora = new Date();
-
-          if (!canaisFutebol.some(c => canal.toLowerCase().includes(c.toLowerCase()))) return;
-          if (!titulo.includes(" x ") && !titulo.includes(" vs ")) return;
-          if (fim < agora) return;
-
-          const [time1, time2] = titulo.split(/ x | vs /i);
-          const tempoRestante = inicio - agora;
-          let status = "";
-
-          if (agora >= inicio && agora <= fim) {
-            status = "🔥 Ao vivo agora";
-          } else if (tempoRestante <= 5 * 60 * 1000 && tempoRestante > 0) {
-            status = "🕒 Em breve";
-          }
-
-          setTimeout(() => {
-            Promise.all([buscarEscudo(time1.trim()), buscarEscudo(time2.trim())]).then(([escudo1, escudo2]) => {
-              const card = document.createElement("div");
-              card.className = "jogo-card";
-              card.innerHTML = `
-                <div class="escudos">
-                  <img src="${escudo1}" alt="${time1}">
-                  <span class="vs">X</span>
-                  <img src="${escudo2}" alt="${time2}">
-                </div>
-                <div class="info">${time1} x ${time2}</div>
-                <div class="info">${canal} – ${formatarHora(inicio)}</div>
-                ${status ? `<div class="status">${status}</div>` : ""}
-              `;
-              container.appendChild(card);
-            });
-          }, delay);
-          delay += 35000; // 35s por par de escudos (limite da API)
-        });
-      });
-
-    function parseEPGTime(str) {
-      const ano = str.slice(0, 4);
-      const mes = str.slice(4, 6);
-      const dia = str.slice(6, 8);
-      const hora = str.slice(9, 11);
-      const minuto = str.slice(11, 13);
-      return new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
-    }
-
-    function formatarHora(data) {
-      return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function buscarEscudo(time) {
-      const nome = encodeURIComponent(time);
-      return fetch(`https://www.thesportsdb.com/api/v1/json/1/searchteams.php?t=${nome}`)
-        .then(r => r.json())
-        .then(data => data.teams?.[0]?.strTeamBadge || "https://via.placeholder.com/48x48");
-    }
-  }
-</script>
-    <script>
-  const canaisFutebol = [
-    "ESPN", "ESPN 2", "ESPN 3", "ESPN 4",
-    "SporTV", "SporTV 2", "SporTV 3",
-    "TNT Sports", "Space", "Premiere",
-    "Bandsports", "Nosso Futebol"
-  ];
-
-  const horaAtual = new Date().getHours();
-  const container = document.getElementById("jogos-container");
-
-  if (horaAtual >= 7 && horaAtual <= 15) {
-    // Atualiza os dados e salva no localStorage
-    fetch('https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml')
-      .then(res => res.text())
-      .then(xml => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(xml, "text/xml");
-        const programas = doc.querySelectorAll("programme");
-
-        const jogosHoje = [];
-        let delay = 0;
-
-        programas.forEach(p => {
-          const canal = p.getAttribute("channel");
-          const titulo = p.querySelector("title")?.textContent || "";
-          const inicio = parseEPGTime(p.getAttribute("start"));
-          const fim = parseEPGTime(p.getAttribute("stop"));
-          const agora = new Date();
-
-          if (!canaisFutebol.some(c => canal.toLowerCase().includes(c.toLowerCase()))) return;
-          if (!titulo.includes(" x ") && !titulo.includes(" vs ")) return;
-          if (fim < agora) return;
-
-          const [time1, time2] = titulo.split(/ x | vs /i);
-          const tempoRestante = inicio.getTime() - agora.getTime();
-          let status = "";
-
-          if (agora >= inicio && agora <= fim) {
-            status = "🔥 Ao vivo agora";
-          } else if (tempoRestante <= 5 * 60 * 1000 && tempoRestante > 0) {
-            status = "🕒 Em breve";
-          }
-
-          jogosHoje.push({ time1, time2, canal, inicio, status });
-
-          setTimeout(() => {
-            Promise.all([buscarEscudo(time1.trim()), buscarEscudo(time2.trim())]).then(([escudo1, escudo2]) => {
-              const card = criarCard(time1, time2, canal, inicio, status, escudo1, escudo2);
-              container.appendChild(card);
-            });
-          }, delay);
-          delay += 35000;
-        });
-
-        // Salva no localStorage
-        setTimeout(() => {
-          localStorage.setItem("jogosHoje", JSON.stringify(jogosHoje));
-          localStorage.setItem("jogosData", new Date().toDateString());
-        }, delay + 500);
-      });
-  } else {
-    // Horário fora da faixa: tenta recuperar os jogos salvos
-    const dataSalva = localStorage.getItem("jogosData");
-    const jogosSalvos = JSON.parse(localStorage.getItem("jogosHoje") || "[]");
-
-    if (dataSalva === new Date().toDateString()) {
-      jogosSalvos.forEach((jogo, i) => {
-        setTimeout(() => {
-          Promise.all([buscarEscudo(jogo.time1.trim()), buscarEscudo(jogo.time2.trim())]).then(([escudo1, escudo2]) => {
-            const card = criarCard(jogo.time1, jogo.time2, jogo.canal, new Date(jogo.inicio), jogo.status, escudo1, escudo2);
-            container.appendChild(card);
-          });
-        }, i * 35000);
-      });
-    }
-  }
-
-  function criarCard(time1, time2, canal, inicio, status, escudo1, escudo2) {
-    const card = document.createElement("div");
-    card.className = "jogo-card";
-    card.innerHTML = `
-      <div class="escudos">
-        <img src="${escudo1}" alt="${time1}">
-        <span class="vs">X</span>
-        <img src="${escudo2}" alt="${time2}">
-      </div>
-      <div class="info">${time1} x ${time2}</div>
-      <div class="info">${canal} – ${formatarHora(new Date(inicio))}</div>
-      ${status ? `<div class="status">${status}</div>` : ""}
-    `;
-    return card;
-  }
-
-  function parseEPGTime(str) {
-    const ano = str.slice(0, 4);
-    const mes = str.slice(4, 6);
-    const dia = str.slice(6, 8);
-    const hora = str.slice(9, 11);
-    const minuto = str.slice(11, 13);
-    return new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
-  }
-
-  function formatarHora(data) {
-    return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-  }
-
-  function buscarEscudo(time) {
-    const nome = encodeURIComponent(time);
-    return fetch(`https://www.thesportsdb.com/api/v1/json/1/searchteams.php?t=${nome}`)
-      .then(r => r.json())
-      .then(data => data.teams?.[0]?.strTeamBadge || "https://via.placeholder.com/48x48");
-  }
-</script>
-</script>
-<script>
-const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
-
-async function buscarImagemFilme(titulo) {
-  const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
-  const dados = await resposta.json();
-  const filme = dados.results?.[0];
-  return filme?.poster_path 
-    ? `https://image.tmdb.org/t/p/w500${filme.poster_path}`
-    : "https://via.placeholder.com/300x450?text=" + encodeURIComponent(titulo);
-}
-
-async function carregarFilmes() {
-  const canais = [
-    "Telecine Action", "Telecine Premium", "Telecine Cult", "Telecine Pipoca",
-    "Megapix", "Space", "Warner Bros", "TNT", "Cinemax", "Paramount", "HBO"
-  ];
-  const epgUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml";
-  const response = await fetch(epgUrl);
-  const xmlText = await response.text();
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(xmlText, "text/xml");
-
-  const programas = Array.from(xml.getElementsByTagName("programme"));
-  const hoje = new Date();
-  const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
-
-  const destaques = canais.flatMap(canal => 
-    programas.filter(p => {
-      const channel = p.getAttribute("channel") || "";
-      const start = p.getAttribute("start") || "";
-      return channel.toLowerCase().includes(canal.toLowerCase()) &&
-             start.startsWith(hojeStr) &&
-             parseInt(start.slice(8, 10)) >= 12 &&
-             parseInt(start.slice(8, 10)) <= 16;
-    }).slice(0, 2)
-  ).slice(0, 30);
-
-  const container = document.getElementById("filmes");
-  for (const filme of destaques) {
-    const title = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
-    const channel = filme.getAttribute("channel");
-    const start = filme.getAttribute("start");
-    const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
-    const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
-    const img = await buscarImagemFilme(title);
-
-    const card = document.createElement("div");
-    card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
-    card.innerHTML = `
-      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
-      <h3 class="text-sm font-bold text-white">${title}</h3>
-      <p class="text-xs text-gray-300">Canal: ${channel}</p>
-      <p class="text-xs text-gray-300">Horário: ${horario}</p>
-      <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
-    `;
-    container.appendChild(card);
-  }
-}
-window.addEventListener("DOMContentLoaded", carregarFilmes);
-</script>
-
-    <div class="container mx-auto px-4 py-6">
-        <header class="mb-6">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <img src="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" alt="MaxPlay TV Logo" class="h-12 mr-3">
-                    <h1 class="text-2xl font-bold text-white">MaxPlay TV <span class="text-vibrant-orange">– Guia</span></h1>
-                </div>
-                <div class="flex flex-col sm:flex-row w-full md:w-auto gap-2">
-                    <div class="relative flex-grow">
-                        <input type="text" id="channel-search" placeholder="Buscar canal ou programa..." 
-                            class="w-full p-2 pl-3 pr-10 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-vibrant-orange">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <button id="reload-epg" class="px-4 py-2 bg-vibrant-orange text-white rounded-md hover:bg-opacity-90 transition-colors whitespace-nowrap">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
+<div class="container mx-auto px-4 py-6">
+<header class="mb-6">
+<div class="flex flex-col md:flex-row justify-between items-center mb-6">
+<div class="flex items-center mb-4 md:mb-0">
+<img alt="MaxPlay TV Logo" class="h-12 mr-3" src="https://i.postimg.cc/BvbCr0jH/IMG-6850.png"/>
+<h1 class="text-2xl font-bold text-white">MaxPlay TV <span class="text-vibrant-orange">– Guia</span></h1>
+</div>
+<div class="flex flex-col sm:flex-row w-full md:w-auto gap-2">
+<div class="relative flex-grow">
+<input class="w-full p-2 pl-3 pr-10 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-vibrant-orange" id="channel-search" placeholder="Buscar canal ou programa..." type="text"/>
+<svg class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<button class="px-4 py-2 bg-vibrant-orange text-white rounded-md hover:bg-opacity-90 transition-colors whitespace-nowrap" id="reload-epg">
+<svg class="h-5 w-5 inline-block mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
                         Recarregar Programação MaxPlay
                     </button>
-                </div>
-            </div>
-            
-            <div class="flex justify-between items-center mb-4">
-                <div class="current-time">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span id="current-time-display">Carregando...</span>
-                </div>
-                <div class="text-sm text-gray-400">
+</div>
+</div>
+<div class="flex justify-between items-center mb-4">
+<div class="current-time">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span id="current-time-display">Carregando...</span>
+</div>
+<div class="text-sm text-gray-400">
                     Última atualização: <span id="last-update">Carregando...</span>
-                </div>
-            </div>
-            
-            <div class="auto-update-notice">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-vibrant-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span>A programação é atualizada automaticamente para mostrar exatamente 5 programas a partir do horário atual do seu dispositivo.</span>
-            </div>
-            
-            <div class="filters-container overflow-x-auto pb-2">
-                <div class="flex space-x-2 mb-4">
-                    <button class="filter-btn active px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="all">Todos</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="movies">Filmes e Séries</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="documentary">Documentários</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="kids">Infantis</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="sports">Esportes</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="adult">Adulto</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="open">Canais Abertos</button>
-                    <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Canal Notícias</button>
-                </div>
-            </div>
-        </header>
-
-        <div id="loading" class="flex justify-center items-center h-40">
-            <div class="loading-spinner"></div>
-            <p class="ml-4 text-gray-300">Carregando programação...</p>
-        </div>
-
-        <div id="error-message" class="hidden bg-red-900 border border-red-700 text-white px-4 py-3 rounded mb-4"></div>
-
-        <div id="channels-container" class="hidden">
-            <!-- Movies and Series Section -->
-            <section id="movies-section" class="mb-8">
-                <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Filmes e Séries</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="movies-channels"></div>
-            </section>
-
-            <!-- Documentary Section -->
-            <section id="documentary-section" class="mb-8">
-                <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Documentários</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="documentary-channels"></div>
-            </section>
-
-            <!-- Kids Section -->
-            <section id="kids-section" class="mb-8">
-                <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Infantis</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="kids-channels"></div>
-            </section>
-
-            <!-- Sports Section -->
-            <section id="sports-section" class="mb-8">
-                <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Esportes</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="sports-channels"></div>
-            </section>
-
-            <!-- Other Channels Section -->
-            <section id="other-section" class="mb-8">
-                <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Outros Canais</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="other-channels"></div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Full Schedule Modal -->
-    <div id="schedule-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header bg-gray-800">
-                <div class="flex items-center">
-                    <img id="modal-channel-logo" src="" alt="Channel Logo" class="h-8 mr-2">
-                    <h3 id="modal-channel-name" class="text-lg font-bold text-white">Canal</h3>
-                </div>
-                <span class="modal-close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="modal-schedule-list" class="space-y-3">
-                    <!-- Programme items will be added here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+</div>
+</div>
+<div class="auto-update-notice">
+<svg class="h-5 w-5 text-vibrant-orange" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>A programação é atualizada automaticamente para mostrar exatamente 5 programas a partir do horário atual do seu dispositivo.</span>
+</div>
+<div class="filters-container overflow-x-auto pb-2">
+<div class="flex space-x-2 mb-4">
+<button class="filter-btn active px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="all">Todos</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="movies">Filmes e Séries</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="documentary">Documentários</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="kids">Infantis</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="sports">Esportes</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="adult">Adulto</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="open">Canais Abertos</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Canal Notícias</button>
+</div>
+</div>
+</header>
+<div class="flex justify-center items-center h-40" id="loading">
+<div class="loading-spinner"></div>
+<p class="ml-4 text-gray-300">Carregando programação...</p>
+</div>
+<div class="hidden bg-red-900 border border-red-700 text-white px-4 py-3 rounded mb-4" id="error-message"></div>
+<div class="hidden" id="channels-container">
+<!-- Movies and Series Section -->
+<section class="mb-8" id="movies-section">
+<h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Filmes e Séries</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="movies-channels"></div>
+</section>
+<!-- Documentary Section -->
+<section class="mb-8" id="documentary-section">
+<h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Documentários</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="documentary-channels"></div>
+</section>
+<!-- Kids Section -->
+<section class="mb-8" id="kids-section">
+<h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Infantis</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="kids-channels"></div>
+</section>
+<!-- Sports Section -->
+<section class="mb-8" id="sports-section">
+<h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Esportes</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="sports-channels"></div>
+</section>
+<!-- Other Channels Section -->
+<section class="mb-8" id="other-section">
+<h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Outros Canais</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="other-channels"></div>
+</section>
+</div>
+</div>
+<!-- Full Schedule Modal -->
+<div class="modal" id="schedule-modal">
+<div class="modal-content">
+<div class="modal-header bg-gray-800">
+<div class="flex items-center">
+<img alt="Channel Logo" class="h-8 mr-2" id="modal-channel-logo" src=""/>
+<h3 class="text-lg font-bold text-white" id="modal-channel-name">Canal</h3>
+</div>
+<span class="modal-close">×</span>
+</div>
+<div class="modal-body">
+<div class="space-y-3" id="modal-schedule-list">
+<!-- Programme items will be added here -->
+</div>
+</div>
+</div>
+</div>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error-message');
@@ -1435,5 +1119,81 @@ window.addEventListener("DOMContentLoaded", carregarFilmes);
             }
         });
     </script>
-</body>
+<script>
+const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
+
+async function buscarImagemFilme(titulo) {
+  const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
+  const dados = await resposta.json();
+  const filme = dados.results?.[0];
+  return filme?.poster_path 
+    ? `https://image.tmdb.org/t/p/w500${filme.poster_path}`
+    : "https://via.placeholder.com/300x450?text=" + encodeURIComponent(titulo);
+}
+
+async function carregarFilmes() {
+  const canais = [
+    "HBO 2", "HBO Plus", "HBO Family", "HBO Signature", "HBO Xtreme",
+    "Universal TV", "Warner TV", "AXN", "Studio Universal", "Syfy",
+    "Canal Brasil", "FOX Channel", "Star Channel", "Star Life", "Lifetime"
+  ];
+
+  const epgUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml";
+  const response = await fetch(epgUrl);
+  const xmlText = await response.text();
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlText, "text/xml");
+
+  const programas = Array.from(xml.getElementsByTagName("programme"));
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
+
+  const destaques = canais.flatMap(canal => {
+    const programasDoCanal = programas.filter(p => {
+      const channel = p.getAttribute("channel") || "";
+      const start = p.getAttribute("start") || "";
+
+      const startTime = new Date(
+        parseInt(start.slice(0, 4)),
+        parseInt(start.slice(4, 6)) - 1,
+        parseInt(start.slice(6, 8)),
+        parseInt(start.slice(8, 10)),
+        parseInt(start.slice(10, 12))
+      );
+
+      return channel.toLowerCase().includes(canal.toLowerCase()) &&
+             start.startsWith(hojeStr) &&
+             startTime >= new Date();
+    });
+
+    return programasDoCanal.slice(0, 5);
+  });
+
+  const container = document.getElementById("filmes");
+  container.innerHTML = "";
+
+  for (const filme of destaques) {
+    const title = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
+    const channel = filme.getAttribute("channel");
+    const start = filme.getAttribute("start");
+    const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
+    const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
+    const img = await buscarImagemFilme(title);
+
+    const card = document.createElement("div");
+    card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
+    card.innerHTML = `
+      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
+      <h3 class="text-sm font-bold text-white">${title}</h3>
+      <p class="text-xs text-gray-300">Canal: ${channel}</p>
+      <p class="text-xs text-gray-300">Horário: ${horario}</p>
+      <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
+    `;
+    container.appendChild(card);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", carregarFilmes);
+setInterval(carregarFilmes, 60000);
+</script></body>
 </html>
