@@ -1123,21 +1123,6 @@
 const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
 
 async function buscarImagemFilme(titulo) {
-  try {
-    const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
-    const dados = await resposta.json();
-
-    // Procurar o primeiro resultado que tenha poster
-    const filmeComPoster = dados.results?.find(f => f.poster_path);
-
-    return filmeComPoster
-      ? `https://image.tmdb.org/t/p/w500${filmeComPoster.poster_path}`
-      : `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
-  } catch (erro) {
-    console.error("Erro ao buscar filme:", titulo, erro);
-    return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
-  }
-}
   const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
   const dados = await resposta.json();
   const filme = dados.results?.[0];
@@ -1198,7 +1183,7 @@ async function carregarFilmes() {
     const card = document.createElement("div");
     card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
     card.innerHTML = `
-      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded ${img.includes('placeholder') ? 'opacity-50' : ''}">
+      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
       <h3 class="text-sm font-bold text-white">${title}</h3>
       <p class="text-xs text-gray-300">Canal: ${channel}</p>
       <p class="text-xs text-gray-300">Horário: ${horario}</p>
