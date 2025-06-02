@@ -1122,14 +1122,29 @@
 <script>
 const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
 
+
 async function buscarImagemFilme(titulo) {
-  const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
-  const dados = await resposta.json();
-  const filme = dados.results?.[0];
-  return filme?.poster_path 
-    ? `https://image.tmdb.org/t/p/w500${filme.poster_path}`
-    : "https://via.placeholder.com/300x450?text=" + encodeURIComponent(titulo);
+  try {
+    const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
+    const dados = await resposta.json();
+
+    const filme = dados.results?.find(f => f.poster_path || f.backdrop_path);
+
+    if (filme) {
+      if (filme.poster_path) {
+        return `https://image.tmdb.org/t/p/w500${filme.poster_path}`;
+      } else if (filme.backdrop_path) {
+        return `https://image.tmdb.org/t/p/w500${filme.backdrop_path}`;
+      }
+    }
+
+    return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
+  } catch (erro) {
+    console.error("Erro ao buscar imagem do filme:", titulo, erro);
+    return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
+  }
 }
+
 
 async function carregarFilmes() {
   const canais = [
