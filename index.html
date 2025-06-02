@@ -215,11 +215,22 @@
 </head>
 <body>
 
-<section id="filmes-destaque" class="p-4 bg-gray-900 text-white">
+<section id="filmes-destaque" class="px-4 py-6 text-white">
   <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
-  <div id="filmes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+  <div id="filmes" class="flex gap-4 overflow-x-auto pb-4"></div>
 </section>
 <script>
+const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
+
+async function buscarImagemFilme(titulo) {
+  const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
+  const dados = await resposta.json();
+  const filme = dados.results?.[0];
+  return filme?.poster_path 
+    ? `https://image.tmdb.org/t/p/w500${filme.poster_path}`
+    : "https://via.placeholder.com/300x450?text=" + encodeURIComponent(titulo);
+}
+
 async function carregarFilmes() {
   const canais = [
     "Telecine Action", "Telecine Premium", "Telecine Cult", "Telecine Pipoca",
@@ -244,29 +255,28 @@ async function carregarFilmes() {
              parseInt(start.slice(8, 10)) >= 12 &&
              parseInt(start.slice(8, 10)) <= 16;
     }).slice(0, 2)
-  ).slice(0, 30); // máximo de 30 destaques
+  ).slice(0, 30);
 
   const container = document.getElementById("filmes");
-
-  destaques.forEach(filme => {
+  for (const filme of destaques) {
     const title = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
     const channel = filme.getAttribute("channel");
     const start = filme.getAttribute("start");
     const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
     const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
-    const imagem = "https://via.placeholder.com/300x450?text=" + encodeURIComponent(title);
+    const img = await buscarImagemFilme(title);
 
-    const div = document.createElement("div");
-    div.className = "bg-gray-800 rounded p-2 shadow";
-    div.innerHTML = `
-      <img src="${imagem}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
-      <h3 class="text-lg font-bold text-white">${title}</h3>
-      <p class="text-sm text-gray-400">Canal: ${channel}</p>
-      <p class="text-sm text-gray-400">Horário: ${horario}</p>
-      <p class="text-sm text-yellow-400">Classificação: ${rating}</p>
+    const card = document.createElement("div");
+    card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
+    card.innerHTML = `
+      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
+      <h3 class="text-sm font-bold text-white">${title}</h3>
+      <p class="text-xs text-gray-300">Canal: ${channel}</p>
+      <p class="text-xs text-gray-300">Horário: ${horario}</p>
+      <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
     `;
-    container.appendChild(div);
-  });
+    container.appendChild(card);
+  }
 }
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 </script>
