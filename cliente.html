@@ -429,23 +429,23 @@
                 'GloboNews': 'https://logodownload.org/wp-content/uploads/2017/07/globo-news-logo-0.png',
                 'CNN Brasil': 'https://logodownload.org/wp-content/uploads/2020/02/cnn-brasil-logo-0.png'
             
-                'Lifetime': 'https://i.postimg.cc/rwp6RG2C/IMG-6910.png',
-                'AMC': 'https://i.postimg.cc/t4vK31X0/IMG-6911.jpg',
-                'AXN': 'https://i.postimg.cc/qM4H4VmF/IMG-6909.jpg',
-                'A&E': 'https://i.postimg.cc/15BhzC23/IMG-6912.png',
-                'Prime Box Brazil': 'https://i.postimg.cc/2yYMkhxW/IMG-6913.png',
-                'Comedy Central': 'https://i.postimg.cc/k5kLHk6f/IMG-6914.png',
-                'Paramount Network': 'https://i.postimg.cc/KzBChJtF/IMG-6915.png',
-                'Travel Box': 'https://i.postimg.cc/xjGBsp03/IMG-6916.png',
-                'TLC': 'https://i.postimg.cc/Prt90bJs/IMG-6917.png',
-                'E!': 'https://i.postimg.cc/SND34XYX/IMG-6918.jpg',
-                'Arte 1': 'https://i.postimg.cc/VkvTkYXK/IMG-6919.png',
-                'Fish': 'https://i.postimg.cc/T3ssyZ9f/IMG-6920.png',
-                'Nick Junior': 'https://i.postimg.cc/Xqn1S3Vc/IMG-6924.png',
-                'Cartoonito': 'https://i.postimg.cc/hjLZ5hqt/IMG-6923.png',
-                'Premiere': 'https://i.postimg.cc/dQ9SR7BW/IMG-6926.png',
-                'Rede TV': 'https://i.postimg.cc/xTTp60p9/IMG-6927.png',
-            };
+    'Lifetime': 'https://i.postimg.cc/rwp6RG2C/IMG-6910.png',
+    'AMC': 'https://i.postimg.cc/t4vK31X0/IMG-6911.jpg',
+    'AXN': 'https://i.postimg.cc/qM4H4VmF/IMG-6909.jpg',
+    'A&E': 'https://i.postimg.cc/15BhzC23/IMG-6912.png',
+    'Prime Box Brazil': 'https://i.postimg.cc/2yYMkhxW/IMG-6913.png',
+    'Comedy Central': 'https://i.postimg.cc/k5kLHk6f/IMG-6914.png',
+    'Paramount Network': 'https://i.postimg.cc/KzBChJtF/IMG-6915.png',
+    'Travel Box': 'https://i.postimg.cc/xjGBsp03/IMG-6916.png',
+    'TLC': 'https://i.postimg.cc/Prt90bJs/IMG-6917.png',
+    'E!': 'https://i.postimg.cc/SND34XYX/IMG-6918.jpg',
+    'Arte 1': 'https://i.postimg.cc/VkvTkYXK/IMG-6919.png',
+    'Fish': 'https://i.postimg.cc/T3ssyZ9f/IMG-6920.png',
+    'Nick Junior': 'https://i.postimg.cc/Xqn1S3Vc/IMG-6924.png',
+    'Cartoonito': 'https://i.postimg.cc/hjLZ5hqt/IMG-6923.png',
+    'Premiere': 'https://i.postimg.cc/dQ9SR7BW/IMG-6926.png',
+    'Rede TV': 'https://i.postimg.cc/xTTp60p9/IMG-6927.png',
+};
             
             // Dias da semana abreviados
             const weekdaysShort = {
@@ -1147,13 +1147,10 @@ async function buscarImagemFilme(titulo) {
   }
 
   let tentativas = [titulo, removerAcentos(titulo)];
-  if (titulo.includes(":")) {
-    tentativas.push(titulo.split(":")[0]);
-  }
-  if (titulo.includes(" ")) {
-    const palavras = titulo.split(" ");
-    if (palavras.length >= 2) tentativas.push(palavras.slice(0, 2).join(" "));
-    if (palavras.length >= 3) tentativas.push(palavras.slice(1, 3).join(" "));
+  const palavras = titulo.split(" ");
+  if (palavras.length > 2) {
+    tentativas.push(palavras.slice(0, 2).join(" "));
+    tentativas.push(palavras.slice(1).join(" "));
   }
 
   for (let tentativa of tentativas) {
@@ -1170,8 +1167,16 @@ async function buscarImagemFilme(titulo) {
       console.error("Erro na tentativa com:", tentativa, erro);
     }
   }
+
   return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
-}`;
+}&query=${encodeURIComponent(titulo)}`);
+    const dados = await resposta.json();
+
+    const filme = dados.results?.find(f => f.poster_path || f.backdrop_path);
+
+    if (filme) {
+      if (filme.poster_path) {
+        return `https://image.tmdb.org/t/p/w500${filme.poster_path}`;
       } else if (filme.backdrop_path) {
         return `https://image.tmdb.org/t/p/w500${filme.backdrop_path}`;
       }
