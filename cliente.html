@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaxPlay TV</title>
+  <script>
+    if (localStorage.getItem("clienteAutenticado") !== "true") {
+      window.location.href = "index.html";
+    }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0f172a;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 36px;
+      color: #ff6b00;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 18px;
+      color: #f1f5f9;
+    }
+    img {
+      max-width: 220px;
+      margin-bottom: 30px;
+    }
+    .logout {
+      margin-top: 40px;
+      padding: 10px 20px;
+      background-color: #ff6b00;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.postimg.cc/jdWznxbC/IMG-6850.png" alt="Logo MaxPlay TV">
+  <h1>Bem-vindo ao MaxPlay TV</h1>
+  <p>Área exclusiva para clientes com acesso autorizado.</p>
+
+  <button class="logout" onclick="logout()">Sair</button>
+
+  <script>
+    function logout() {
+      localStorage.removeItem("clienteAutenticado");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
