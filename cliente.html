@@ -273,7 +273,7 @@
   ];
 
   const horaAtual = new Date().getHours();
-  if (horaAtual >= 7 && horaAtual <= 15) {
+  if (horaAtual >= 0 && horaAtual <= 23) {
     fetch('https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml')
       .then(res => res.text())
       .then(xml => {
