@@ -1173,9 +1173,7 @@ async function buscarImagemFilme(tituloOriginal) {
 
 async function carregarFilmes() {
   const canais = [
-    "HBO 2", "HBO Plus", "HBO Family", "HBO Signature", "HBO Xtreme",
-    "Universal TV", "Warner TV", "AXN", "Studio Universal", "Syfy",
-    "Canal Brasil", "FOX Channel", "Star Channel", "Star Life", "Lifetime"
+    "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix", "HBO Family", "HBO", "HBO2", "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
   ];
 
   const epgUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml";
@@ -1206,7 +1204,7 @@ async function carregarFilmes() {
              startTime >= new Date();
     });
 
-    return programasDoCanal.slice(0, 5);
+    return programasDoCanal.slice(0, 10);
   });
 
   const container = document.getElementById("filmes");
