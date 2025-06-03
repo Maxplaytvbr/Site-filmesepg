@@ -247,24 +247,8 @@
                     Última atualização: <span id="last-update">Carregando...</span>
 </div>
 </div>
-<div class="auto-update-notice">
-<svg class="h-5 w-5 text-vibrant-orange" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-<span>A programação é atualizada automaticamente para mostrar exatamente 5 programas a partir do horário atual do seu dispositivo.</span>
-</div>
-<div class="filters-container overflow-x-auto pb-2">
-<div class="flex space-x-2 mb-4">
-<button class="filter-btn active px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="all">Todos</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="movies">Filmes e Séries</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="documentary">Documentários</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="kids">Infantis</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="sports">Esportes</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="adult">Adulto</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="open">Canais Abertos</button>
-<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Canal Notícias</button>
-</div>
-</div>
+
+
 </header><section class="px-4 py-6 text-white" id="filmes-destaque">
 <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 FILMES PARA ASSISTIR HOJE</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
@@ -275,7 +259,18 @@
 <p class="ml-4 text-gray-300">Carregando programação...</p>
 </div>
 <div class="hidden bg-red-900 border border-red-700 text-white px-4 py-3 rounded mb-4" id="error-message"></div>
-<h2 class="text-2xl font-bold mb-4 text-orange-500">📺 CANAIS E PROGRAMAÇÃO DE HOJE</h2><div class="hidden" id="channels-container">
+<h2 class="text-2xl font-bold mb-4 text-orange-500">📺 CANAIS E PROGRAMAÇÃO DE HOJE</h2><div class="filters-container overflow-x-auto pb-2">
+<div class="flex space-x-2 mb-4">
+<button class="filter-btn active px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="all">Todos</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="movies">Filmes e Séries</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="documentary">Documentários</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="kids">Infantis</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="sports">Esportes</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="adult">Adulto</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="open">Canais Abertos</button>
+<button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Canal Notícias</button>
+</div>
+</div><div class="hidden" id="channels-container">
 <!-- Movies and Series Section -->
 <section class="mb-8" id="movies-section">
 <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Filmes e Séries</h2>
@@ -1171,9 +1166,11 @@ async function buscarImagemFilme(tituloOriginal) {
   return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
 }
 
+
 async function carregarFilmes() {
   const canais = [
-    "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix", "HBO Family", "HBO", "HBO2", "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
+    "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix", "HBO Family", "HBO", "HBO2",
+    "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
   ];
 
   const epgUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/vivoplay.xml";
@@ -1186,7 +1183,11 @@ async function carregarFilmes() {
   const hoje = new Date();
   const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
 
-  const destaques = canais.flatMap(canal => {
+  const titulosUnicos = new Set();
+  const container = document.getElementById("filmes");
+  container.innerHTML = "";
+
+  for (const canal of canais) {
     const programasDoCanal = programas.filter(p => {
       const channel = p.getAttribute("channel") || "";
       const start = p.getAttribute("start") || "";
@@ -1204,32 +1205,38 @@ async function carregarFilmes() {
              startTime >= new Date();
     });
 
-    return programasDoCanal.slice(0, 10);
-  });
+    for (const filme of programasDoCanal) {
+      const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
+      const titleClean = titleRaw.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-  const container = document.getElementById("filmes");
-  container.innerHTML = "";
+      if (titulosUnicos.has(titleClean)) continue;
 
-  for (const filme of destaques) {
-    const title = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
-    const channel = filme.getAttribute("channel");
-    const start = filme.getAttribute("start");
-    const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
-    const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
-    const img = await buscarImagemFilme(title);
+      const img = await buscarImagemFilme(titleRaw);
+      if (img.includes("via.placeholder.com")) continue;
 
-    const card = document.createElement("div");
-    card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
-    card.innerHTML = `
-      <img src="${img}" alt="${title}" class="w-full h-60 object-cover mb-2 rounded">
-      <h3 class="text-sm font-bold text-white">${title}</h3>
-      <p class="text-xs text-gray-300">Canal: ${channel}</p>
-      <p class="text-xs text-gray-300">Horário: ${horario}</p>
-      <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
-    `;
-    container.appendChild(card);
+      titulosUnicos.add(titleClean);
+
+      const channel = filme.getAttribute("channel");
+      const start = filme.getAttribute("start");
+      const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
+      const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
+
+      const card = document.createElement("div");
+      card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
+      card.innerHTML = `
+        <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded">
+        <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
+        <p class="text-xs text-gray-300">Canal: ${channel}</p>
+        <p class="text-xs text-gray-300">Horário: ${horario}</p>
+        <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
+      `;
+      container.appendChild(card);
+
+      break;
+    }
   }
 }
+
 
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
