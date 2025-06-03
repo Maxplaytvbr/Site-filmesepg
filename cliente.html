@@ -1141,20 +1141,13 @@ const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
 
 
 async function buscarImagemFilme(tituloOriginal) {
-  const tituloLimpo = tituloOriginal.toLowerCase();
-
-const padraoInvalido = /\.(mp4|mkv|avi|srt|webm|mov|264|flv|mpeg|wmv|ts)$/i;
-
-if (
-  padraoInvalido.test(tituloLimpo) ||
-  tituloLimpo.includes("1080") ||
-  tituloLimpo.includes("720") ||
-  tituloLimpo.includes("bluray") ||
-  tituloLimpo.includes("dvdrip") ||
-  tituloLimpo.split(/[ .]/).length <= 1
-) {
-  return null; // pula esse título estranho
-}
+  const variacoes = [
+    tituloOriginal,
+    tituloOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, ""), // remove acentos
+    tituloOriginal.split(":")[0], // parte antes dos dois-pontos
+    tituloOriginal.split("-")[0], // parte antes do hífen
+    tituloOriginal.replace(/\s+\d{4}$/, "") // remove ano, ex: "Matrix 1999" => "Matrix"
+  ];
 
   for (const titulo of variacoes) {
     try {
@@ -1214,19 +1207,8 @@ async function carregarFilmes() {
     return programasDoCanal.slice(0, 10);
   });
 
-  const titulosUnicos = new Set();
-const destaquesFiltrados = [];
-
-for (const filme of destaques) {
-  const titulo = filme.getElementsByTagName("title")[0]?.textContent?.trim();
-  if (titulo && !titulosUnicos.has(titulo)) {
-    titulosUnicos.add(titulo);
-    destaquesFiltrados.push(filme);
-  }
-}
-
-const container = document.getElementById("filmes");
-container.innerHTML = "";;
+  const container = document.getElementById("filmes");
+  container.innerHTML = "";
 
   for (const filme of destaques) {
     const title = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
@@ -1235,7 +1217,6 @@ container.innerHTML = "";;
     const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
     const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
     const img = await buscarImagemFilme(title);
-if (!img) continue; // pula filme com nome ruim;
 
     const card = document.createElement("div");
     card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
