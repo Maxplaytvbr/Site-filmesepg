@@ -1142,28 +1142,36 @@
 const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
 
 
-async function buscarImagemFilme(titulo) {
-  try {
-    const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`);
-    const dados = await resposta.json();
+async function buscarImagemFilme(tituloOriginal) {
+  const variacoes = [
+    tituloOriginal,
+    tituloOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, ""), // remove acentos
+    tituloOriginal.split(":")[0], // parte antes dos dois-pontos
+    tituloOriginal.split("-")[0], // parte antes do hífen
+    tituloOriginal.replace(/\s+\d{4}$/, "") // remove ano, ex: "Matrix 1999" => "Matrix"
+  ];
 
-    const filme = dados.results?.find(f => f.poster_path || f.backdrop_path);
+  for (const titulo of variacoes) {
+    try {
+      const resposta = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo.trim())}`);
+      const dados = await resposta.json();
 
-    if (filme) {
-      if (filme.poster_path) {
-        return `https://image.tmdb.org/t/p/w500${filme.poster_path}`;
-      } else if (filme.backdrop_path) {
-        return `https://image.tmdb.org/t/p/w500${filme.backdrop_path}`;
+      const filme = dados.results?.find(f => f.poster_path || f.backdrop_path);
+
+      if (filme) {
+        if (filme.poster_path) {
+          return `https://image.tmdb.org/t/p/w500${filme.poster_path}`;
+        } else if (filme.backdrop_path) {
+          return `https://image.tmdb.org/t/p/w500${filme.backdrop_path}`;
+        }
       }
+    } catch (erro) {
+      console.error("Erro ao tentar buscar com variação:", titulo, erro);
     }
-
-    return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
-  } catch (erro) {
-    console.error("Erro ao buscar imagem do filme:", titulo, erro);
-    return `https://via.placeholder.com/300x450?text=${encodeURIComponent(titulo)}`;
   }
-}
 
+  return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
+}
 
 async function carregarFilmes() {
   const canais = [
