@@ -2,7 +2,14 @@
 
 <html lang="pt-BR">
 <head>
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+<style>body { font-family: 'Poppins', sans-serif; }</style>
 <meta charset="utf-8"/>
+<meta name="description" content="Guia MaxPlay TV com programação atualizada dos melhores canais, filmes e séries.">
+<meta property="og:title" content="MaxPlay TV - Guia">
+<meta property="og:description" content="Veja a programação de hoje com filmes, séries e canais ao vivo.">
+<meta property="og:image" content="https://i.postimg.cc/BvbCr0jH/IMG-6850.png">
+<link rel="icon" href="https://i.postimg.cc/BvbCr0jH/IMG-6850.png">
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -643,7 +650,7 @@
                     
                     // Get updated programmes for this channel
                     const channelProgrammes = allProgrammesByChannel[channelId] || [];
-                    const currentProgrammes = getExactlyFiveProgrammes(channelProgrammes);
+                    const currentProgrammes = getExactlyFiveProgrammes(channelProgrammes).slice(0, 2);
                     
                     // Clear and update programmes list
                     programmesList.innerHTML = '';
@@ -809,7 +816,7 @@
                     return [];
                 }
                 
-                // Retornar exatamente 5 programas a partir do programa atual/próximo
+                // Retornar exatamente 5 programas a partir do programa atual/próximo (limitado a 2 na exibição)
                 return sortedProgrammes.slice(currentIndex, currentIndex + 5);
             }
             
