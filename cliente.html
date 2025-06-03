@@ -213,66 +213,8 @@
             margin-left: 2px;
         }
     </style>
-
-<style>
-    header {
-        background: #121212;
-        color: white;
-        padding: 10px 20px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
-    header .left, header .right {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    header input[type="text"] {
-        padding: 5px;
-        border-radius: 4px;
-        border: none;
-    }
-    header button {
-        padding: 6px 12px;
-        background: #ff5722;
-        border: none;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    h2.section-title {
-        background: #222;
-        color: white;
-        padding: 10px 20px;
-        margin: 0;
-    }
-</style>
-
 </head>
 <body>
-
-<header>
-    <div class="left">
-        <img src="https://i.postimg.cc/jdWznxbC/IMG-6850.png" alt="MaxPlay Logo" style="height: 40px;">
-        <strong style="font-size: 1.5em;">maxplayguia</strong>
-        <input type="text" id="pesquisar" placeholder="Pesquisar canais..." onkeyup="filtrarCanais()">
-    </div>
-    <div class="right">
-        <button onclick="location.reload()">Recarregar programação Maxplay</button>
-        <div id="relogio">00:00</div>
-        <div id="ultima-atualizacao">Última atualização: --:--</div>
-    </div>
-</header>
-
-<section class="px-4 py-6 text-white" id="filmes-destaque">
-<h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
-<div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
-</section>
-
-<div class="container mx-auto px-4 py-6">
 <header class="mb-6">
 <div class="flex flex-col md:flex-row justify-between items-center mb-6">
 <div class="flex items-center mb-4 md:mb-0">
@@ -323,13 +265,18 @@
 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Canal Notícias</button>
 </div>
 </div>
-</header>
+</header><section class="px-4 py-6 text-white" id="filmes-destaque">
+<h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 FILMES PARA ASSISTIR HOJE</h2>
+<div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
+</section>
+<div class="container mx-auto px-4 py-6">
+
 <div class="flex justify-center items-center h-40" id="loading">
 <div class="loading-spinner"></div>
 <p class="ml-4 text-gray-300">Carregando programação...</p>
 </div>
 <div class="hidden bg-red-900 border border-red-700 text-white px-4 py-3 rounded mb-4" id="error-message"></div>
-<div class="hidden" id="channels-container">
+<h2 class="text-2xl font-bold mb-4 text-orange-500">📺 CANAIS E PROGRAMAÇÃO DE HOJE</h2><div class="hidden" id="channels-container">
 <!-- Movies and Series Section -->
 <section class="mb-8" id="movies-section">
 <h2 class="category-title text-xl font-bold mb-4 text-vibrant-orange">Filmes e Séries</h2>
@@ -1289,18 +1236,5 @@ async function carregarFilmes() {
 
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
-</script>
-<script>
-    function atualizarRelogio() {
-        const agora = new Date();
-        const horas = agora.getHours().toString().padStart(2, '0');
-        const minutos = agora.getMinutes().toString().padStart(2, '0');
-        document.getElementById('relogio').textContent = horas + ":" + minutos;
-        document.getElementById('ultima-atualizacao').textContent = "Última atualização: " + horas + ":" + minutos;
-    }
-    setInterval(atualizarRelogio, 1000);
-    atualizarRelogio();
-</script>
-
-</body>
+</script></body>
 </html>
