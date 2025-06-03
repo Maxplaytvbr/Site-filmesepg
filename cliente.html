@@ -527,7 +527,9 @@
                     } else {
                         // Show only relevant section and hide others
                         sections.forEach(section => {
-                            if (section.id === `${filter}-section`) {
+                            if (section.id === 'filmes-destaque') {
+                                section.classList.remove('hidden'); // Sempre mostra os filmes do dia
+                            } else if (section.id === `${filter}-section`) {
                                 section.classList.remove('hidden');
                             } else {
                                 section.classList.add('hidden');
