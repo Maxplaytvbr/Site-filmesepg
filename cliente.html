@@ -213,8 +213,60 @@
             margin-left: 2px;
         }
     </style>
+
+<style>
+    header {
+        background: #121212;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+    header .left, header .right {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    header input[type="text"] {
+        padding: 5px;
+        border-radius: 4px;
+        border: none;
+    }
+    header button {
+        padding: 6px 12px;
+        background: #ff5722;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    h2.section-title {
+        background: #222;
+        color: white;
+        padding: 10px 20px;
+        margin: 0;
+    }
+</style>
+
 </head>
 <body>
+
+<header>
+    <div class="left">
+        <img src="https://i.postimg.cc/jdWznxbC/IMG-6850.png" alt="MaxPlay Logo" style="height: 40px;">
+        <strong style="font-size: 1.5em;">maxplayguia</strong>
+        <input type="text" id="pesquisar" placeholder="Pesquisar canais..." onkeyup="filtrarCanais()">
+    </div>
+    <div class="right">
+        <button onclick="location.reload()">Recarregar programação Maxplay</button>
+        <div id="relogio">00:00</div>
+        <div id="ultima-atualizacao">Última atualização: --:--</div>
+    </div>
+</header>
+
 <section class="px-4 py-6 text-white" id="filmes-destaque">
 <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 Filmes em Destaque de Hoje</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
@@ -1237,5 +1289,18 @@ async function carregarFilmes() {
 
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
-</script></body>
+</script>
+<script>
+    function atualizarRelogio() {
+        const agora = new Date();
+        const horas = agora.getHours().toString().padStart(2, '0');
+        const minutos = agora.getMinutes().toString().padStart(2, '0');
+        document.getElementById('relogio').textContent = horas + ":" + minutos;
+        document.getElementById('ultima-atualizacao').textContent = "Última atualização: " + horas + ":" + minutos;
+    }
+    setInterval(atualizarRelogio, 1000);
+    atualizarRelogio();
+</script>
+
+</body>
 </html>
