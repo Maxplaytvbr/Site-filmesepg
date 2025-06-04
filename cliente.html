@@ -1397,7 +1397,7 @@ async function carregarEventosFinal() {
 
   for (const evento of eventos) {
     const card = document.createElement("div");
-    card.className = "bg-[#1a1a1a] rounded-lg p-4 mb-4 text-white w-full max-w-3xl mx-auto shadow flex flex-col sm:flex-row items-center sm:items-start gap-4";
+    card.className = "channel-card rounded-lg overflow-hidden shadow-lg bg-[#1a1a1a] border border-orange-500 p-4 w-full max-w-3xl mx-auto flex flex-col sm:flex-row gap-4";
 
     const escudo1 = evento.escudo1 ? `<img src="${evento.escudo1}" class="h-8 w-8 object-contain">` : "";
     const escudo2 = evento.escudo2 ? `<img src="${evento.escudo2}" class="h-8 w-8 object-contain">` : "";
