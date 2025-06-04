@@ -24,10 +24,8 @@ jobs:
       - name: Executar script Python
         run: python gerar_jogos.py
 
-      - name: Fazer commit do jogos.json
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add jogos.json
-          git commit -m "📅 Atualização automática dos jogos.json"
-          git push
+      -     - name: Commit e push do jogos.json
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: 📅 Atualização automática dos jogos.json
+        branch: main
