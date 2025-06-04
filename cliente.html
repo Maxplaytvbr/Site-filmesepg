@@ -322,29 +322,25 @@
   let eventos = [];
 
   
-
-
 function normalizarEsporte(titulo, desc) {
   const t = (titulo + " " + desc).toLowerCase();
   if (t.includes("ufc") || t.includes("mma")) return "UFC";
   if (t.includes("box") || t.includes("boxing")) return "Box";
-  if (t.includes("nba")) return "NBA";
-  if (t.includes("nbb")) return "NBB";
-  if (t.includes("vôlei feminino") || t.includes("volei feminino")) return "Vôlei Feminino";
-  if (t.includes("vôlei masculino") || t.includes("volei masculino")) return "Vôlei Masculino";
+  if (t.includes("nba") || t.includes("basquete")) return "NBA";
+  if (t.includes("vôlei feminino")) return "Vôlei Feminino";
+  if (t.includes("vôlei masculino")) return "Vôlei Masculino";
   if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
-  if (t.includes("sub-17") || t.includes("sub17")) return "Futebol Sub-17";
-  if (t.includes("sub-20") || t.includes("sub20")) return "Futebol Sub-20";
-  if (t.includes("brasileirão") || t.includes("serie-a") || t.includes("série a")) return "Futebol";
-  if (t.includes("paulistão") || t.includes("paulista")) return "Futebol";
-  if (t.includes("carioca") || t.includes("cariocão")) return "Futebol";
-  if (t.includes("champions")) return "Futebol";
-  if (t.includes("futebol")) return "Futebol";
-  if (/\s+x\s+/.test(titulo) || /\s+vs\s+/.test(titulo)) return "Futebol";
+  if (t.includes("feminino") && t.includes("futebol")) return "Futebol Feminino";
+  if (t.includes("sub-17")) return "Futebol Sub-17";
+  if (t.includes("sub-20")) return "Futebol Sub-20";
+  if (t.includes("brasileirão")) return "Brasileirão";
+  if (t.includes("paulistão")) return "Paulistão";
+  if (t.includes("carioca")) return "Carioca";
+  if (t.includes("champions")) return "Champions";
+  if (t.includes("laliga")) return "LaLiga";
+  if (t.includes("futebol") || t.includes("liga") || /\s+x\s+/i.test(titulo)) return "Futebol";
   return "Outro";
 }
-
-
 
       } catch (e) {
         console.error("Erro ao carregar XML:", url, e);
@@ -380,6 +376,14 @@ function normalizarEsporte(titulo, desc) {
     const agora = new Date();
     container.innerHTML = "";
     let lista = filtrarEventosPorDiaEEsporte();
+    // Reorganizar: priorizar Futebol e ordenar por horário
+    lista.sort((a, b) => a.data - b.data);
+    if (esporteAtual === "Outro") {
+      lista = lista.slice(0, 20);
+    } else {
+      lista = lista.filter(evt => evt.esporte === esporteAtual).slice(0, 20);
+    }
+
     while (lista.length === 0 && diaAtual < 5) {
       diaAtual++;
       lista = filtrarEventosPorDiaEEsporte();
@@ -1437,21 +1441,6 @@ function formatarDia(date) {
   return date.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 }
 
-
-function extrairTimes(titulo) {
-  const regex = /(.+?)\s+(?:vs|x)\s+(.+)/i;
-  const match = titulo.match(regex);
-  return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
-}
-
-function formatarHora(date) {
-  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-}
-
-function formatarDia(date) {
-  return date.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
-}
-
 async function carregarEventosModeloVisual() {
   const urls = [
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
@@ -1460,10 +1449,6 @@ async function carregarEventosModeloVisual() {
   const container = document.getElementById("jogos-container");
   container.innerHTML = "";
   const eventosMap = new Map();
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const amanha = new Date(hoje);
-  amanha.setDate(amanha.getDate() + 1);
 
   for (const url of urls) {
     try {
@@ -1475,24 +1460,24 @@ async function carregarEventosModeloVisual() {
       for (const prog of programas) {
         const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
         if (!/(vs|x)/i.test(titulo)) continue;
-        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
-        const inicio = prog.getAttribute("start");
-        const canal = prog.getAttribute("channel") || "";
+        if (/século\s*x/i.test(titulo)) continue;
 
+        const canal = prog.getAttribute("channel");
+        const inicio = prog.getAttribute("start");
+        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
         const data = new Date(
           inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
           inicio.slice(8, 10), inicio.slice(10, 12)
         );
-
-        if (data < hoje || data >= amanha) continue;
-
-        const esporte = normalizarEsporte(titulo, desc);
         const [time1, time2] = extrairTimes(titulo);
         const key = `${time1}-${time2}-${data.toISOString()}`;
 
         if (!eventosMap.has(key)) {
-          eventosMap.set(key, { titulo, canais: [canal], data, time1, time2, desc, esporte });
+          eventosMap.set(key, {
+            titulo, canais: [canal], data, time1, time2, desc
+          });
         } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
           eventosMap.get(key).canais.push(canal);
         }
       }
@@ -1501,46 +1486,35 @@ async function carregarEventosModeloVisual() {
     }
   }
 
-  const eventos = Array.from(eventosMap.values())
-    .filter(e => e.esporte === esporteAtual || (esporteAtual === "Outro" && !["Futebol", "Vôlei", "UFC", "NBB"].includes(e.esporte)))
-    .sort((a, b) => a.data - b.data);
+  const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
+  let dataAtual = "";
 
-  const listaFinal = esporteAtual === "Outro" ? eventos.slice(0, 20) : eventos;
-  const agora = new Date();
-  container.innerHTML = "";
+  for (const evento of eventos) {
+    const dataLabel = formatarDia(evento.data);
+    if (dataLabel !== dataAtual) {
+      const dataDiv = document.createElement("div");
+      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
+      dataDiv.textContent = `📅 ${dataLabel}`;
+      container.appendChild(dataDiv);
+      dataAtual = dataLabel;
+    }
 
-  
-  if (listaFinal.length === 0) {
-    const aviso = document.createElement("div");
-    aviso.className = "text-center text-gray-400 italic mt-6";
-    aviso.textContent = "Nenhum evento encontrado para esta categoria hoje.";
-    container.appendChild(aviso);
-    return;
-  }
-
-  for (const evento of listaFinal) {
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-6 mx-1'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-6 mx-1'/>` : "";
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1'/>` : "";
     const canais = [...new Set(evento.canais)].join(", ");
     const hora = formatarHora(evento.data);
-    const aoVivo = evento.data <= agora && new Date(evento.data.getTime() + 7200000) > agora; // 2h de duração
 
     const card = document.createElement("div");
     card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
 
     card.innerHTML = `
-      <div class="text-sm font-semibold uppercase text-orange-400 mb-1">${evento.esporte}</div>
-      <div class="flex items-center justify-center text-white text-lg font-bold mt-1">
-        <span class="mr-1">${evento.time1}</span>${escudo1}
-        <span class="mx-2">X</span>
-        ${escudo2}<span class="ml-1">${evento.time2}</span>
+      
+      <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
+        <span class="mr-2">${evento.time1}</span>${escudo1}
+        <span class="mx-2 text-xl">X</span>
+        ${escudo2}<span class="ml-2">${evento.time2}</span>
       </div>
-      <div class="text-center text-sm text-white mt-1 font-medium">
-        ${hora} | ${canais}
-        <span class="ml-2 px-2 py-0.5 text-xs rounded ${aoVivo ? 'bg-red-600' : 'bg-yellow-500'} text-white">
-          ${aoVivo ? 'AO VIVO' : 'em breve'}
-        </span>
-      </div>
+      <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
     `;
 
     container.appendChild(card);
