@@ -1,0 +1,34 @@
+name: Atualizar Jogos do Dia
+
+on:
+  schedule:
+    - cron: '0 11 * * *'  # Executa todos os dias às 08h (Brasil = UTC-3)
+  workflow_dispatch:
+
+jobs:
+  atualizar-jogos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar o repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: pip install requests beautifulsoup4
+
+      - name: Executar script Python
+        run: python gerar_jogos.py
+
+      - name: Configurar Git e dar push com token pessoal
+        run: |
+          git config user.name "maxplay-bot"
+          git config user.email "bot@maxplay.tv"
+          git add jogos.json
+          git commit -m "📅 Atualização automática dos jogos.json" || echo "Sem alterações"
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Maxplaytvbr/Site-filmesepg.git
+          git push origin main
