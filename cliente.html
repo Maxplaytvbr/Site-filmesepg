@@ -322,25 +322,26 @@
   let eventos = [];
 
   
+
 function normalizarEsporte(titulo, desc) {
   const t = (titulo + " " + desc).toLowerCase();
   if (t.includes("ufc") || t.includes("mma")) return "UFC";
   if (t.includes("box") || t.includes("boxing")) return "Box";
-  if (t.includes("nba") || t.includes("basquete")) return "NBA";
-  if (t.includes("vôlei feminino")) return "Vôlei Feminino";
-  if (t.includes("vôlei masculino")) return "Vôlei Masculino";
+  if (t.includes("nba")) return "NBA";
+  if (t.includes("nbb")) return "NBB";
+  if (t.includes("vôlei feminino") || t.includes("volei feminino")) return "Vôlei Feminino";
+  if (t.includes("vôlei masculino") || t.includes("volei masculino")) return "Vôlei Masculino";
   if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
-  if (t.includes("feminino") && t.includes("futebol")) return "Futebol Feminino";
   if (t.includes("sub-17")) return "Futebol Sub-17";
   if (t.includes("sub-20")) return "Futebol Sub-20";
-  if (t.includes("brasileirão")) return "Brasileirão";
-  if (t.includes("paulistão")) return "Paulistão";
-  if (t.includes("carioca")) return "Carioca";
-  if (t.includes("champions")) return "Champions";
-  if (t.includes("laliga")) return "LaLiga";
-  if (t.includes("futebol") || t.includes("liga") || /\s+x\s+/i.test(titulo)) return "Futebol";
+  if (t.includes("brasileirão") || t.includes("serie-a") || t.includes("série a")) return "Futebol";
+  if (t.includes("paulistão") || t.includes("paulista")) return "Futebol";
+  if (t.includes("carioca") || t.includes("cariocão")) return "Futebol";
+  if (t.includes("champions")) return "Futebol";
+  if (t.includes("futebol") || /\s+x\s+/i.test(titulo)) return "Futebol";
   return "Outro";
 }
+
 
       } catch (e) {
         console.error("Erro ao carregar XML:", url, e);
