@@ -296,83 +296,13 @@
 </header><section class="px-4 py-6 text-white" id="filmes-destaque">
 <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 FILMES PARA ASSISTIR HOJE</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
+</section><section class="px-4 py-6 text-white" id="jogos-hoje">
+<h2 class="text-2xl font-bold mb-4 text-orange-500">🏆 JOGOS DE HOJE</h2>
+<div class="flex gap-4 overflow-x-auto pb-4" id="jogos-container">
+<div class="loading-spinner"></div>
+<p class="ml-4 text-gray-300">Carregando jogos...</p>
+</div>
 </section>
-<section class="px-4 py-6 text-white" id="jogos-do-dia">
-<h2 class="text-2xl font-bold mb-4 text-orange-500">⚽ JOGOS DE HOJE</h2>
-<div class="flex gap-4 overflow-x-auto pb-4" id="jogos-hoje"></div>
-</section>
-<style>
-  .jogo-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #ff6b00;
-    border-radius: 8px;
-    padding: 10px;
-    min-width: 180px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .jogo-card h3 {
-    font-size: 16px;
-    font-weight: bold;
-  }
-  .jogo-status {
-    margin-top: 4px;
-    font-size: 12px;
-    background-color: #ff6b00;
-    color: white;
-    border-radius: 4px;
-    padding: 2px 6px;
-    display: inline-block;
-  }
-</style>
-<script>
-async function carregarJogos() {
-  const container = document.getElementById("jogos-hoje");
-  container.innerHTML = "";
-
-  try {
-    const resposta = await fetch("jogos.json");
-    const jogos = await resposta.json();
-    const agora = new Date();
-
-    jogos.forEach(jogo => {
-      const inicio = new Date(jogo.horario_inicio);
-      const fim = new Date(jogo.horario_fim);
-      const horaFormatada = inicio.toLocaleTimeString("pt-BR", {
-        hour: "2-digit", minute: "2-digit"
-      });
-
-      let status = "";
-      if (agora >= inicio && agora <= fim) {
-        status = "🔥 Ao vivo";
-      } else if ((inicio - agora) / 60000 <= 10 && (inicio - agora) > 0) {
-        status = "🕒 Em breve";
-      }
-
-      const card = document.createElement("div");
-      card.className = "jogo-card";
-      card.innerHTML = `
-        <h3>${jogo.time1} x ${jogo.time2}</h3>
-        <p class="text-sm text-gray-300">${horaFormatada}h - ${jogo.canal}</p>
-        ${status ? `<span class="jogo-status">${status}</span>` : ""}
-      `;
-      container.appendChild(card);
-    });
-
-    if (jogos.length === 0) {
-      container.innerHTML = `<p class="text-gray-400">Nenhum jogo encontrado para hoje.</p>`;
-    }
-
-  } catch (erro) {
-    console.error("Erro ao carregar jogos.json:", erro);
-    container.innerHTML = `<p class="text-red-500">Erro ao carregar os jogos.</p>`;
-  }
-}
-
-window.addEventListener("DOMContentLoaded", carregarJogos);
-setInterval(carregarJogos, 60000);
-</script>
-
 <div class="container mx-auto px-4 py-6">
 <div class="flex justify-center items-center h-40" id="loading">
 <div class="loading-spinner"></div>
@@ -1362,5 +1292,79 @@ async function carregarFilmes() {
 
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
+</script><script>
+const jogosXMLs = [
+  "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
+  "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
+];
+
+const jogosContainer = document.getElementById("jogos-container");
+const regexJogo = /.+\s+(vs|x)\s+.+/i;
+
+function parseEPGDate(dateString) {
+  return new Date(
+    parseInt(dateString.slice(0, 4)), 
+    parseInt(dateString.slice(4, 6)) - 1, 
+    parseInt(dateString.slice(6, 8)), 
+    parseInt(dateString.slice(8, 10)), 
+    parseInt(dateString.slice(10, 12))
+  );
+}
+
+async function carregarJogos() {
+  const hoje = new Date();
+  const jogosUnicos = new Set();
+  jogosContainer.innerHTML = "";
+
+  for (const url of jogosXMLs) {
+    try {
+      const res = await fetch(url);
+      const xmlText = await res.text();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "text/xml");
+      const programas = Array.from(xml.getElementsByTagName("programme"));
+
+      for (const prog of programas) {
+        const title = prog.getElementsByTagName("title")[0]?.textContent || "";
+        const channel = prog.getAttribute("channel") || "";
+        const startStr = prog.getAttribute("start") || "";
+        const stopStr = prog.getAttribute("stop") || "";
+        if (!regexJogo.test(title)) continue;
+
+        const start = parseEPGDate(startStr);
+        const stop = parseEPGDate(stopStr);
+        const key = title + startStr;
+
+        if (jogosUnicos.has(key)) continue;
+        jogosUnicos.add(key);
+
+        const hojeStr = hoje.toISOString().slice(0, 10);
+        const jogoDataStr = start.toISOString().slice(0, 10);
+        const aoVivo = start <= new Date() && stop > new Date();
+
+        const card = document.createElement("div");
+        card.className = "min-w-[180px] max-w-[220px] bg-white bg-opacity-5 rounded p-3 shadow flex-shrink-0";
+
+        card.innerHTML = `
+          <h3 class="text-sm font-bold text-white mb-1">${title}</h3>
+          <p class="text-xs text-gray-300 mb-1">Canal: ${channel}</p>
+          <p class="text-xs text-gray-300 mb-1">Data: ${jogoDataStr}</p>
+          <p class="text-xs text-gray-300 mb-1">Início: ${start.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}</p>
+          ${aoVivo ? `<span class="live-indicator text-red-500 text-xs font-bold">AO VIVO</span>` : ""}
+        `;
+        jogosContainer.appendChild(card);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar jogos:", url, e);
+    }
+  }
+
+  if (!jogosContainer.hasChildNodes()) {
+    jogosContainer.innerHTML = '<p class="text-gray-400 italic">Nenhum jogo encontrado para hoje.</p>';
+  }
+}
+
+carregarJogos();
+setInterval(carregarJogos, 60000); // atualiza a cada minuto
 </script></body>
 </html>
