@@ -323,6 +323,7 @@
 
   
 
+
 function normalizarEsporte(titulo, desc) {
   const t = (titulo + " " + desc).toLowerCase();
   if (t.includes("ufc") || t.includes("mma")) return "UFC";
@@ -332,15 +333,17 @@ function normalizarEsporte(titulo, desc) {
   if (t.includes("vôlei feminino") || t.includes("volei feminino")) return "Vôlei Feminino";
   if (t.includes("vôlei masculino") || t.includes("volei masculino")) return "Vôlei Masculino";
   if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
-  if (t.includes("sub-17")) return "Futebol Sub-17";
-  if (t.includes("sub-20")) return "Futebol Sub-20";
+  if (t.includes("sub-17") || t.includes("sub17")) return "Futebol Sub-17";
+  if (t.includes("sub-20") || t.includes("sub20")) return "Futebol Sub-20";
   if (t.includes("brasileirão") || t.includes("serie-a") || t.includes("série a")) return "Futebol";
   if (t.includes("paulistão") || t.includes("paulista")) return "Futebol";
   if (t.includes("carioca") || t.includes("cariocão")) return "Futebol";
   if (t.includes("champions")) return "Futebol";
-  if (t.includes("futebol") || /\s+x\s+/i.test(titulo)) return "Futebol";
+  if (t.includes("futebol")) return "Futebol";
+  if (/\s+x\s+/.test(titulo) || /\s+vs\s+/.test(titulo)) return "Futebol";
   return "Outro";
 }
+
 
 
       } catch (e) {
@@ -1505,6 +1508,15 @@ async function carregarEventosModeloVisual() {
   const listaFinal = esporteAtual === "Outro" ? eventos.slice(0, 20) : eventos;
   const agora = new Date();
   container.innerHTML = "";
+
+  
+  if (listaFinal.length === 0) {
+    const aviso = document.createElement("div");
+    aviso.className = "text-center text-gray-400 italic mt-6";
+    aviso.textContent = "Nenhum evento encontrado para esta categoria hoje.";
+    container.appendChild(aviso);
+    return;
+  }
 
   for (const evento of listaFinal) {
     const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-6 mx-1'/>` : "";
