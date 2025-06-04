@@ -1288,5 +1288,49 @@ async function carregarFilmes() {
 
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
-</script></body>
+</script>
+<section class="px-4 py-6" id="jogos-dia">
+    <h2 class="text-2xl font-bold mb-4 text-orange-500">⚽ Jogos do Dia</h2>
+    <div id="jogos-container" class="flex gap-4 overflow-x-auto pb-4"></div>
+</section>
+
+<script>
+fetch('jogos.json')
+.then(res => res.json())
+.then(data => {
+    const container = document.getElementById('jogos-container');
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-400">Nenhum jogo disponível hoje.</p>';
+    } else {
+        data.forEach(jogo => {
+            const card = `
+                <div class="bg-white bg-opacity-10 rounded p-4 min-w-[240px]">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-center">
+                            <img src="${jogo.escudo1}" class="w-10 h-10 mx-auto mb-1">
+                            <p class="text-sm">${jogo.time1}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xl font-bold">${jogo.placar1} - ${jogo.placar2}</p>
+                            <p class="text-xs ${jogo.status === 'ao_vivo' ? 'text-red-500' : jogo.status === 'finalizado' ? 'text-yellow-400' : 'text-gray-400'}">
+                                ${jogo.status === 'ao_vivo' ? 'AO VIVO' : jogo.status === 'finalizado' ? 'Finalizado' : 'Futuro'}
+                            </p>
+                        </div>
+                        <div class="text-center">
+                            <img src="${jogo.escudo2}" class="w-10 h-10 mx-auto mb-1">
+                            <p class="text-sm">${jogo.time2}</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-300">${jogo.campeonato}</p>
+                    <p class="text-xs text-gray-300">🕒 ${jogo.dia_semana} | ${jogo.hora}</p>
+                    <p class="text-xs text-gray-300">📺 ${jogo.canal}</p>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+});
+</script>
+
+</body>
 </html>
