@@ -1294,51 +1294,19 @@ window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
 </script><script>
 const escudos = {
-  "Flamengo": "https://logodownload.org/wp-content/uploads/2017/12/flamengo-logo-0.png",
-  "Palmeiras": "https://logodownload.org/wp-content/uploads/2017/12/palmeiras-logo-0.png",
-  "Corinthians": "https://logodownload.org/wp-content/uploads/2017/12/corinthians-logo-0.png",
-  "São Paulo": "https://logodownload.org/wp-content/uploads/2017/12/sao-paulo-logo-0.png",
-  "Vasco": "https://logodownload.org/wp-content/uploads/2017/12/vasco-logo-0.png",
-  "Grêmio": "https://logodownload.org/wp-content/uploads/2017/12/gremio-logo-0.png",
-  "Internacional": "https://logodownload.org/wp-content/uploads/2017/12/internacional-logo-0.png",
-  "PSG": "https://logodownload.org/wp-content/uploads/2017/12/psg-logo-0.png",
-  "Real Madrid": "https://logodownload.org/wp-content/uploads/2017/12/real-madrid-logo-0.png",
-  "Barcelona": "https://logodownload.org/wp-content/uploads/2017/12/barcelona-logo-0.png"
+  "Corinthians": "https://upload.wikimedia.org/wikipedia/pt/5/5f/Corinthians_logo.png",
+  "Palmeiras": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg",
+  "São Paulo": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg",
+  "Santos": "https://upload.wikimedia.org/wikipedia/commons/b/be/Santos_logo.svg",
+  "Flamengo": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
+  "Vasco": "https://upload.wikimedia.org/wikipedia/pt/5/5b/Vasco_da_Gama_Logo.png",
+  "Grêmio": "https://upload.wikimedia.org/wikipedia/pt/8/80/Gremio_logo.svg",
+  "Internacional": "https://upload.wikimedia.org/wikipedia/commons/9/9a/SC_Internacional_logo.svg",
+  "PSG": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
+  "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
+  "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+  "TAU": "https://upload.wikimedia.org/wikipedia/pt/f/f2/AD_Taubaté_logo.png"
 };
-
-const esporteEmoji = {
-  "futebol": "⚽️ Futebol",
-  "basket": "🏀 Basquete",
-  "basquete": "🏀 Basquete",
-  "volei": "🏐 Vôlei",
-  "ufc": "🥊 UFC",
-  "boxe": "🥊 Boxe",
-  "beisebol": "🥎 Beisebol",
-  "futebol americano": "🏈 Futebol Americano",
-  "tenis": "🎾 Tênis",
-  "tênis": "🎾 Tênis",
-  "tênis de mesa": "🏓 Tênis de Mesa",
-  "ping pong": "🏓 Tênis de Mesa"
-};
-
-function identificarEsporteDetalhado(titulo) {
-  const texto = titulo.toLowerCase();
-  for (const [esporte, rotulo] of Object.entries(esporteEmoji)) {
-    if (texto.includes(esporte)) return rotulo;
-  }
-  return "🎯 Esporte";
-}
-
-function formatarDataCompleta(date) {
-  return date.toLocaleString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
 
 function extrairTimes(titulo) {
   const regex = /(.+?)\s+(?:vs|x)\s+(.+)/i;
@@ -1346,7 +1314,15 @@ function extrairTimes(titulo) {
   return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
 }
 
-async function carregarEventosEsportivos() {
+function formatarHora(date) {
+  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }).replace(":00", "H");
+}
+
+function formatarDia(date) {
+  return date.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
+}
+
+async function carregarEventosModeloVisual() {
   const urls = [
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
@@ -1369,27 +1345,24 @@ async function carregarEventosEsportivos() {
 
         const canal = prog.getAttribute("channel");
         const inicio = prog.getAttribute("start");
-        const fim = prog.getAttribute("stop");
+        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
         const data = new Date(
           inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
           inicio.slice(8, 10), inicio.slice(10, 12)
         );
-        const agora = new Date();
-        const aoVivo = data <= agora && new Date(fim) > agora;
         const [time1, time2] = extrairTimes(titulo);
-        const esporte = identificarEsporteDetalhado(titulo);
         const key = `${time1}-${time2}-${data.toISOString()}`;
 
         if (!eventosMap.has(key)) {
           eventosMap.set(key, {
-            titulo, canais: [canal], data, aoVivo, esporte, time1, time2
+            titulo, canais: [canal], data, time1, time2, desc
           });
         } else {
           eventosMap.get(key).canais.push(canal);
         }
       }
     } catch (e) {
-      console.error("Erro ao carregar EPG:", url, e);
+      console.error("Erro ao carregar:", url, e);
     }
   }
 
@@ -1397,53 +1370,38 @@ async function carregarEventosEsportivos() {
   let dataAtual = "";
 
   for (const evento of eventos) {
-    const agora = new Date();
-    const emBreve = !evento.aoVivo && (evento.data - agora <= 5 * 3600 * 1000 && evento.data > agora);
-
-    const dataLabel = evento.data.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit"
-    });
+    const dataLabel = formatarDia(evento.data);
     if (dataLabel !== dataAtual) {
       const dataDiv = document.createElement("div");
-      dataDiv.className = "text-vibrant-orange font-bold text-base mb-2 mt-6";
+      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
       dataDiv.textContent = `📅 ${dataLabel}`;
       container.appendChild(dataDiv);
       dataAtual = dataLabel;
     }
 
-    const card = document.createElement("div");
-    card.className = "bg-white bg-opacity-5 rounded-md p-4 mb-4 shadow-md w-full";
-
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='w-6 h-6 inline-block mr-1'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='w-6 h-6 inline-block mr-1'/>` : "";
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1'/>` : "";
     const canais = [...new Set(evento.canais)].join(", ");
+    const hora = formatarHora(evento.data);
+
+    const card = document.createElement("div");
+    card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
 
     card.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div class="mb-2 sm:mb-0 font-semibold text-white text-lg">${evento.esporte}</div>
-        <div class="text-sm text-gray-300">${formatarDataCompleta(evento.data)}</div>
+      <div class="text-center text-sm text-gray-400 font-semibold uppercase">${evento.desc || "Evento Esportivo"}</div>
+      <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
+        <span class="mr-2">${evento.time1}</span>${escudo1}
+        <span class="mx-2 text-xl">X</span>
+        ${escudo2}<span class="ml-2">${evento.time2}</span>
       </div>
-      <div class="flex items-center mt-2 mb-2">
-        ${escudo1}<span class="text-white font-bold mr-2">${evento.time1}</span>
-        <span class="text-orange-400 font-bold">vs</span>
-        <span class="text-white font-bold mx-2">${evento.time2}</span>${escudo2}
-      </div>
-      <div class="text-sm text-gray-300 mb-1">📺 Canais: ${canais}</div>
-      <div class="text-sm font-semibold ${evento.aoVivo ? 'text-red-500' : emBreve ? 'text-yellow-400' : 'text-gray-500'}">
-        ${evento.aoVivo ? '🔴 AO VIVO' : emBreve ? '🕒 Em breve' : ''}
-      </div>
+      <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
     `;
-    container.appendChild(card);
-  }
 
-  if (!eventos.length) {
-    container.innerHTML = "<p class='text-gray-400 italic'>Nenhum evento esportivo encontrado.</p>";
+    container.appendChild(card);
   }
 }
 
-carregarEventosEsportivos();
-setInterval(carregarEventosEsportivos, 60000);
+carregarEventosModeloVisual();
+setInterval(carregarEventosModeloVisual, 60000);
 </script></body>
 </html>
