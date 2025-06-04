@@ -1307,26 +1307,26 @@ const escudos = {
 };
 
 const esporteEmoji = {
-  "futebol": "⚽️",
-  "basket": "🏀",
-  "basquete": "🏀",
-  "volei": "🏐",
-  "ufc": "🥊",
-  "boxe": "🥊",
-  "beisebol": "🥎",
-  "futebol americano": "🏈",
-  "tenis": "🎾",
-  "tênis": "🎾",
-  "tênis de mesa": "🏓",
-  "ping pong": "🏓"
+  "futebol": "⚽️ Futebol",
+  "basket": "🏀 Basquete",
+  "basquete": "🏀 Basquete",
+  "volei": "🏐 Vôlei",
+  "ufc": "🥊 UFC",
+  "boxe": "🥊 Boxe",
+  "beisebol": "🥎 Beisebol",
+  "futebol americano": "🏈 Futebol Americano",
+  "tenis": "🎾 Tênis",
+  "tênis": "🎾 Tênis",
+  "tênis de mesa": "🏓 Tênis de Mesa",
+  "ping pong": "🏓 Tênis de Mesa"
 };
 
-function identificarEsporte(titulo) {
+function identificarEsporteDetalhado(titulo) {
   const texto = titulo.toLowerCase();
-  for (const [esporte, emoji] of Object.entries(esporteEmoji)) {
-    if (texto.includes(esporte)) return emoji;
+  for (const [esporte, rotulo] of Object.entries(esporteEmoji)) {
+    if (texto.includes(esporte)) return rotulo;
   }
-  return "🎯";
+  return "🎯 Esporte";
 }
 
 function formatarDataCompleta(date) {
@@ -1353,7 +1353,7 @@ async function carregarEventosEsportivos() {
   ];
   const container = document.getElementById("jogos-container");
   container.innerHTML = "";
-  let eventos = [];
+  const eventosMap = new Map();
 
   for (const url of urls) {
     try {
@@ -1376,21 +1376,30 @@ async function carregarEventosEsportivos() {
         );
         const agora = new Date();
         const aoVivo = data <= agora && new Date(fim) > agora;
-        const esporte = identificarEsporte(titulo);
         const [time1, time2] = extrairTimes(titulo);
-        const key = `${titulo}-${inicio}`;
+        const esporte = identificarEsporteDetalhado(titulo);
+        const key = `${time1}-${time2}-${data.toISOString()}`;
 
-        eventos.push({ key, titulo, canal, data, aoVivo, esporte, time1, time2 });
+        if (!eventosMap.has(key)) {
+          eventosMap.set(key, {
+            titulo, canais: [canal], data, aoVivo, esporte, time1, time2
+          });
+        } else {
+          eventosMap.get(key).canais.push(canal);
+        }
       }
     } catch (e) {
       console.error("Erro ao carregar EPG:", url, e);
     }
   }
 
-  eventos.sort((a, b) => a.data - b.data);
-
+  const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
   let dataAtual = "";
+
   for (const evento of eventos) {
+    const agora = new Date();
+    const emBreve = !evento.aoVivo && (evento.data - agora <= 5 * 3600 * 1000 && evento.data > agora);
+
     const dataLabel = evento.data.toLocaleDateString("pt-BR", {
       weekday: "long",
       day: "2-digit",
@@ -1398,23 +1407,33 @@ async function carregarEventosEsportivos() {
     });
     if (dataLabel !== dataAtual) {
       const dataDiv = document.createElement("div");
-      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-1 mt-4";
+      dataDiv.className = "text-vibrant-orange font-bold text-base mb-2 mt-6";
       dataDiv.textContent = `📅 ${dataLabel}`;
       container.appendChild(dataDiv);
       dataAtual = dataLabel;
     }
 
     const card = document.createElement("div");
-    card.className = "bg-white bg-opacity-5 rounded p-3 mb-3";
+    card.className = "bg-white bg-opacity-5 rounded-md p-4 mb-4 shadow-md w-full";
 
     const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='w-6 h-6 inline-block mr-1'/>` : "";
     const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='w-6 h-6 inline-block mr-1'/>` : "";
+    const canais = [...new Set(evento.canais)].join(", ");
 
     card.innerHTML = `
-      <h3 class="text-sm font-bold text-white mb-1">${evento.esporte} ${escudo1}${evento.time1} vs ${escudo2}${evento.time2}</h3>
-      <p class="text-xs text-gray-300">🕒 ${formatarDataCompleta(evento.data)}</p>
-      <p class="text-xs text-gray-300">📺 ${evento.canal}</p>
-      <p class="text-xs font-bold ${evento.aoVivo ? 'text-red-500' : 'text-yellow-400'}">${evento.aoVivo ? "🔴 AO VIVO" : "🕒 Em breve"}</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div class="mb-2 sm:mb-0 font-semibold text-white text-lg">${evento.esporte}</div>
+        <div class="text-sm text-gray-300">${formatarDataCompleta(evento.data)}</div>
+      </div>
+      <div class="flex items-center mt-2 mb-2">
+        ${escudo1}<span class="text-white font-bold mr-2">${evento.time1}</span>
+        <span class="text-orange-400 font-bold">vs</span>
+        <span class="text-white font-bold mx-2">${evento.time2}</span>${escudo2}
+      </div>
+      <div class="text-sm text-gray-300 mb-1">📺 Canais: ${canais}</div>
+      <div class="text-sm font-semibold ${evento.aoVivo ? 'text-red-500' : emBreve ? 'text-yellow-400' : 'text-gray-500'}">
+        ${evento.aoVivo ? '🔴 AO VIVO' : emBreve ? '🕒 Em breve' : ''}
+      </div>
     `;
     container.appendChild(card);
   }
