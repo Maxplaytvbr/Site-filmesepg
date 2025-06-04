@@ -296,7 +296,149 @@
 </header><section class="px-4 py-6 text-white" id="filmes-destaque">
 <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 FILMES PARA ASSISTIR HOJE</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
-</section><section class="px-4 py-6 text-white" id="jogos-hoje"><h2 class="text-2xl font-bold mb-4 text-orange-500">🏟️ EVENTOS ESPORTIVOS MAXPLAY</h2><div class="flex gap-2 overflow-x-auto pb-4 mb-4" id="evento-filtros"><button class="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-700 hover:bg-vibrant-orange transition filter-btn-esporte active" data-esporte="futebol">FUTEBOL</button><button class="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-700 hover:bg-vibrant-orange transition filter-btn-esporte" data-esporte="volei">VOLEI</button><button class="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-700 hover:bg-vibrant-orange transition filter-btn-esporte" data-esporte="nba">NBA</button><button class="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-700 hover:bg-vibrant-orange transition filter-btn-esporte" data-esporte="boxe">BOXE</button><button class="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-700 hover:bg-vibrant-orange transition filter-btn-esporte" data-esporte="outros">OUTROS</button></div><div class="eventos-categoria flex gap-4 overflow-x-auto pb-4" id="eventos-futebol"></div><div class="eventos-categoria hidden flex gap-4 overflow-x-auto pb-4" id="eventos-volei"></div><div class="eventos-categoria hidden flex gap-4 overflow-x-auto pb-4" id="eventos-nba"></div><div class="eventos-categoria hidden flex gap-4 overflow-x-auto pb-4" id="eventos-boxe"></div><div class="eventos-categoria hidden flex gap-4 overflow-x-auto pb-4" id="eventos-outros"></div></section>
+</section>
+<section class="px-4 py-6 text-white" id="jogos-hoje">
+  <h2 class="text-2xl font-bold mb-4 text-orange-500">🏟️ EVENTOS ESPORTIVOS MAXPLAY</h2>
+  <div id="filtros-esportes" class="flex flex-wrap gap-2 mb-4">
+    <button class="filter-esporte px-3 py-1 rounded bg-orange-600 text-white text-sm" data-esporte="Futebol">Futebol</button>
+    <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="UFC">UFC</button>
+    <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Box">Box</button>
+    <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Vôlei">Vôlei</button>
+    <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="NBA">NBA</button>
+    <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Outro">Outro</button>
+  </div>
+  <div id="jogos-container" class="flex gap-4 overflow-x-auto pb-4"></div>
+  <div class="flex justify-center mt-4">
+    <button id="ver-proximo-dia" class="px-4 py-2 bg-vibrant-orange text-white rounded hover:bg-orange-600 transition">Ver Próximo Dia</button>
+  </div>
+</section>
+<script>
+(async function() {
+  const container = document.getElementById("jogos-container");
+  const botoes = document.querySelectorAll(".filter-esporte");
+  const btnProximoDia = document.getElementById("ver-proximo-dia");
+  let diaAtual = 0;
+  let esporteAtual = "Futebol";
+  let eventos = [];
+
+  function normalizarEsporte(titulo, desc) {
+    const t = titulo.toLowerCase() + " " + desc.toLowerCase();
+    if (t.includes("ufc") || t.includes("mma")) return "UFC";
+    if (t.includes("box") || t.includes("boxing")) return "Box";
+    if (t.includes("nba") || t.includes("basquete")) return "NBA";
+    if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
+    if (t.includes("futebol") || t.includes("campeonato") || t.includes("liga") || /\s+x\s+/.test(titulo)) return "Futebol";
+    return "Outro";
+  }
+
+  function formatarHora(data) {
+    return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function criarCard(evt, agora) {
+    const escudos = (time) => `https://logodownload.org/wp-content/uploads/2020/10/${encodeURIComponent(time.replace(/ /g, "-")).toLowerCase()}-logo.png`;
+    const hora = formatarHora(evt.data);
+    const status = evt.data <= agora && agora < evt.fim ? "AO VIVO" : evt.data > agora ? "EM BREVE" : null;
+    if (!status) return null;
+
+    const card = document.createElement("div");
+    card.className = "min-w-[300px] max-w-[300px] bg-white bg-opacity-5 rounded-lg p-4 shadow flex flex-col justify-between";
+    card.innerHTML = `
+      <div class="text-xs text-orange-400 font-bold mb-2 uppercase">${evt.esporte}</div>
+      <div class="flex items-center justify-center gap-2 text-white font-bold text-base mb-2">
+        <img src="${escudos(evt.time1)}" class="h-8 w-auto" onerror="this.src='https://via.placeholder.com/40?text=${evt.time1[0]}'">
+        <span>${evt.time1}</span>
+        <span class="text-sm">X</span>
+        <span>${evt.time2}</span>
+        <img src="${escudos(evt.time2)}" class="h-8 w-auto" onerror="this.src='https://via.placeholder.com/40?text=${evt.time2[0]}'">
+      </div>
+      <div class="text-sm text-gray-300 truncate">${evt.desc}</div>
+      <div class="text-sm text-gray-400 mt-1">${hora} | ${evt.canais.join(", ")}</div>
+      <div class="text-xs mt-2 font-semibold ${status === 'AO VIVO' ? 'text-red-500' : 'text-green-400'}">${status}</div>
+    `;
+    return card;
+  }
+
+  async function buscarEventos() {
+    const urls = [
+      "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
+      "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
+    ];
+    const map = new Map();
+    for (const url of urls) {
+      try {
+        const xmlText = await (await fetch(url)).text();
+        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+        const programas = Array.from(xml.getElementsByTagName("programme"));
+        for (const prog of programas) {
+          const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+          if (!/(vs|x)/i.test(titulo)) continue;
+          const canal = prog.getAttribute("channel") || "";
+          const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
+          const inicio = prog.getAttribute("start");
+          const fim = prog.getAttribute("stop");
+          const data = new Date(inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8), inicio.slice(8, 10), inicio.slice(10, 12));
+          const fimData = new Date(fim.slice(0, 4), fim.slice(4, 6) - 1, fim.slice(6, 8), fim.slice(8, 10), fim.slice(10, 12));
+          const [time1, time2] = titulo.split(/\s+(vs|x)\s+/i);
+          const key = `${time1}-${time2}-${data.toISOString()}`;
+          if (!map.has(key)) {
+            map.set(key, { titulo, canais: [canal], data, fim: fimData, time1: time1.trim(), time2: time2.trim(), desc, esporte: normalizarEsporte(titulo, desc) });
+          } else {
+            map.get(key).canais.push(canal);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao carregar XML:", url, e);
+      }
+    }
+    eventos = Array.from(map.values()).sort((a, b) => a.data - b.data);
+  }
+
+  function filtrarEventosPorDiaEEsporte() {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const diaBase = new Date(hoje);
+    diaBase.setDate(diaBase.getDate() + diaAtual);
+    const amanha = new Date(diaBase);
+    amanha.setDate(amanha.getDate() + 1);
+
+    return eventos.filter(evt => evt.data >= diaBase && evt.data < amanha && evt.esporte === esporteAtual);
+  }
+
+  function atualizarCards() {
+    const agora = new Date();
+    container.innerHTML = "";
+    let lista = filtrarEventosPorDiaEEsporte();
+    while (lista.length === 0 && diaAtual < 5) {
+      diaAtual++;
+      lista = filtrarEventosPorDiaEEsporte();
+    }
+    for (const evt of lista) {
+      const card = criarCard(evt, agora);
+      if (card) container.appendChild(card);
+    }
+  }
+
+  botoes.forEach(btn => {
+    btn.addEventListener("click", () => {
+      esporteAtual = btn.dataset.esporte;
+      diaAtual = 0;
+      botoes.forEach(b => b.classList.remove("bg-orange-600"));
+      btn.classList.add("bg-orange-600");
+      atualizarCards();
+    });
+  });
+
+  btnProximoDia.addEventListener("click", () => {
+    diaAtual++;
+    atualizarCards();
+  });
+
+  await buscarEventos();
+  atualizarCards();
+})();
+</script>
+
 <div class="container mx-auto px-4 py-6">
 <div class="flex justify-center items-center h-40" id="loading">
 <div class="loading-spinner"></div>
@@ -1399,146 +1541,3 @@ carregarEventosModeloVisual();
 setInterval(carregarEventosModeloVisual, 60000);
 </script></body>
 </html>
-
-<script>
-const escudos = {
-  "Corinthians": "https://upload.wikimedia.org/wikipedia/pt/5/5f/Corinthians_logo.png",
-  "Palmeiras": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg",
-  "São Paulo": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg",
-  "Santos": "https://upload.wikimedia.org/wikipedia/commons/b/be/Santos_logo.svg",
-  "Flamengo": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
-  "Vasco": "https://upload.wikimedia.org/wikipedia/pt/5/5b/Vasco_da_Gama_Logo.png",
-  "Grêmio": "https://upload.wikimedia.org/wikipedia/pt/8/80/Gremio_logo.svg",
-  "Internacional": "https://upload.wikimedia.org/wikipedia/commons/9/9a/SC_Internacional_logo.svg",
-  "PSG": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
-  "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
-  "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
-  "TAU": "https://upload.wikimedia.org/wikipedia/pt/f/f2/AD_Taubaté_logo.png"
-};
-
-const categoriasMap = {
-  "futebol": [/fut/i, /libertadores/i, /brasileir[ãa]o/i, /champions/i, /série/i],
-  "volei": [/v[ôo]lei/i],
-  "nba": [/nba/i, /basquete/i],
-  "boxe": [/boxe/i, /ufc/i],
-  "outros": [/.*/] // catch-all
-};
-
-function extrairTimes(titulo) {
-  const regex = /(.+?)\s+(?:vs|x)\s+(.+)/i;
-  const match = titulo.match(regex);
-  return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
-}
-
-function formatarHora(data) {
-  return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }).replace(":00", "H");
-}
-
-function formatarDia(data) {
-  return data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
-}
-
-function determinarCategoria(desc) {
-  for (const [cat, regras] of Object.entries(categoriasMap)) {
-    if (regras.some(r => r.test(desc))) return cat;
-  }
-  return "outros";
-}
-
-async function carregarEventosEsportivosComFiltro() {
-  const urls = [
-    "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
-    "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
-  ];
-  const eventosMap = new Map();
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      const xmlText = await res.text();
-      const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-      const programas = Array.from(xml.getElementsByTagName("programme"));
-
-      for (const prog of programas) {
-        const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-        if (!/(vs|x)/i.test(titulo)) continue;
-        if (/século\s*x/i.test(titulo)) continue;
-
-        const canal = prog.getAttribute("channel");
-        const inicio = prog.getAttribute("start");
-        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "Outro Evento";
-        const data = new Date(
-          inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
-          inicio.slice(8, 10), inicio.slice(10, 12)
-        );
-
-        const [time1, time2] = extrairTimes(titulo);
-        const key = `${time1}-${time2}-${data.toISOString()}`;
-        if (!eventosMap.has(key)) {
-          eventosMap.set(key, {
-            titulo, canais: [canal], data, time1, time2, desc
-          });
-        } else {
-          eventosMap.get(key).canais.push(canal);
-        }
-      }
-    } catch (e) {
-      console.error("Erro ao carregar:", url, e);
-    }
-  }
-
-  // Limpar os containers
-  document.querySelectorAll(".eventos-categoria").forEach(c => c.innerHTML = "");
-
-  const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
-  const agora = new Date();
-
-  for (const evento of eventos) {
-    const categoria = determinarCategoria(evento.desc);
-    const container = document.getElementById("eventos-" + categoria);
-    if (!container) continue;
-
-    const escudo1 = escudos[evento.time1] ? `<img src="\${escudos[evento.time1]}" class="w-8 h-8 object-contain">` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src="\${escudos[evento.time2]}" class="w-8 h-8 object-contain">` : "";
-    const status = agora >= evento.data
-      ? (agora - evento.data < 2 * 60 * 60 * 1000 ? '<span class="live-indicator ml-2">AO VIVO</span>' : "")
-      : '<span class="ml-2 text-yellow-500 font-semibold text-sm">EM BREVE</span>';
-    if (status === "") continue; // já acabou
-
-    const card = document.createElement("div");
-    card.className = "min-w-[320px] max-w-[320px] h-auto bg-[#1a1a1a] rounded-lg p-4 shadow text-white flex flex-col flex-shrink-0";
-
-    card.innerHTML = `
-      <div class="text-orange-400 font-bold text-base mb-1">⚽ ${evento.desc}</div>
-      <div class="text-sm text-gray-300 mb-2">🏆 ${evento.titulo}</div>
-      <div class="flex justify-between items-center mb-2">
-        <div class="flex items-center gap-2">${escudo1}<span class="font-semibold">${evento.time1}</span></div>
-        <span class="text-orange-400 font-bold">X</span>
-        <div class="flex items-center gap-2"><span class="font-semibold">${evento.time2}</span>${escudo2}</div>
-      </div>
-      <div class="text-sm text-gray-400">📅 ${formatarDia(evento.data)} | 🕒 ${formatarHora(evento.data)}<br>
-      📺 ${[...new Set(evento.canais)].join(", ")} ${status}</div>
-    `;
-    container.appendChild(card);
-  }
-}
-
-// Filtro de botões
-document.addEventListener("DOMContentLoaded", () => {
-  carregarEventosEsportivosComFiltro();
-  setInterval(carregarEventosEsportivosComFiltro, 60000);
-
-  const btns = document.querySelectorAll(".filter-btn-esporte");
-  btns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const cat = btn.dataset.esporte;
-      document.querySelectorAll(".eventos-categoria").forEach(c => {
-        c.classList.add("hidden");
-      });
-      document.getElementById("eventos-" + cat)?.classList.remove("hidden");
-    });
-  });
-});
-</script>
