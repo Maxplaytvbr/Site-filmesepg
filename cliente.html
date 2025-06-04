@@ -350,15 +350,27 @@ function normalizarEsporte(titulo, desc) {
   }
 
   function filtrarEventosPorDiaEEsporte() {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const diaBase = new Date(hoje);
-    diaBase.setDate(diaBase.getDate() + diaAtual);
-    const amanha = new Date(diaBase);
-    amanha.setDate(amanha.getDate() + 1);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const diaBase = new Date(hoje);
+  diaBase.setDate(diaBase.getDate() + diaAtual);
+  const amanha = new Date(diaBase);
+  amanha.setDate(amanha.getDate() + 1);
+  const agora = new Date();
 
-    return eventos.filter(evt => evt.data >= diaBase && evt.data < amanha && evt.esporte === esporteAtual);
+  let lista = eventos.filter(evt =>
+    evt.data >= diaBase &&
+    evt.data < amanha &&
+    evt.data > agora &&
+    evt.esporte === esporteAtual
+  );
+
+  if (esporteAtual === "Outro") {
+    lista = lista.slice(0, 20);
   }
+
+  return lista;
+}
 
   function atualizarCards() {
     const agora = new Date();
@@ -612,6 +624,7 @@ function normalizarEsporte(titulo, desc) {
                     if (channelName.includes(searchTerm) || programmes.some(prog => prog.includes(searchTerm))) {
                         card.classList.remove('hidden');
                     } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                         card.classList.add('hidden');
                     }
                 });
@@ -655,10 +668,12 @@ function normalizarEsporte(titulo, desc) {
                     const channelCards = document.querySelectorAll('.channel-card');
                     
                     if (filter === 'all') {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                         // Show all sections and channels
                         sections.forEach(section => section.classList.remove('hidden'));
                         channelCards.forEach(card => card.classList.remove('hidden'));
                     } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                         // Show only relevant section and hide others
                         sections.forEach(section => {
                             if (section.id === 'filmes-destaque') {
@@ -666,6 +681,7 @@ function normalizarEsporte(titulo, desc) {
                             } else if (section.id === `${filter}-section`) {
                                 section.classList.remove('hidden');
                             } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                                 section.classList.add('hidden');
                             }
                         });
@@ -797,6 +813,7 @@ function normalizarEsporte(titulo, desc) {
                         noProgrammes.textContent = 'Nenhuma programação disponível';
                         programmesList.appendChild(noProgrammes);
                     } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                         currentProgrammes.forEach((programme, index) => {
                             const programmeItem = createProgrammeItem(programme, index === 0);
                             programmesList.appendChild(programmeItem);
@@ -828,6 +845,7 @@ function normalizarEsporte(titulo, desc) {
                     if (visibleChannels.length === 0) {
                         sectionElement.classList.add('hidden');
                     } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                         sectionElement.classList.remove('hidden');
                     }
                 });
@@ -1040,6 +1058,7 @@ function normalizarEsporte(titulo, desc) {
                     noProgrammes.textContent = 'Nenhuma programação disponível';
                     programmesList.appendChild(noProgrammes);
                 } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                     programmes.forEach((programme, index) => {
                         const programmeItem = createProgrammeItem(programme, index === 0);
                         programmesList.appendChild(programmeItem);
@@ -1172,6 +1191,7 @@ function normalizarEsporte(titulo, desc) {
                     noProgrammes.textContent = 'Nenhuma programação disponível para as próximas 24 horas';
                     modalScheduleList.appendChild(noProgrammes);
                 } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
                     // Create a date header for the current day
                     const dateHeader = document.createElement('div');
                     dateHeader.className = 'text-vibrant-orange font-bold text-lg mb-2 border-b border-gray-700 pb-1';
@@ -1449,6 +1469,7 @@ async function carregarEventosModeloVisual() {
             titulo, canais: [canal], data, time1, time2, desc
           });
         } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
           eventosMap.get(key).canais.push(canal);
         }
       }
@@ -1479,7 +1500,7 @@ async function carregarEventosModeloVisual() {
     card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
 
     card.innerHTML = `
-      <div class="text-center text-sm text-gray-400 font-semibold uppercase">${evento.desc || "Evento Esportivo"}</div>
+      
       <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
         <span class="mr-2">${evento.time1}</span>${escudo1}
         <span class="mx-2 text-xl">X</span>
