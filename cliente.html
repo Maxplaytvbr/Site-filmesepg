@@ -1322,7 +1322,7 @@ function formatarDia(date) {
   return date.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 }
 
-async function carregarEventosModeloVisual() {
+async function carregarEventosPaisagem() {
   const urls = [
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
@@ -1345,7 +1345,6 @@ async function carregarEventosModeloVisual() {
 
         const canal = prog.getAttribute("channel");
         const inicio = prog.getAttribute("start");
-        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
         const data = new Date(
           inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
           inicio.slice(8, 10), inicio.slice(10, 12)
@@ -1355,7 +1354,7 @@ async function carregarEventosModeloVisual() {
 
         if (!eventosMap.has(key)) {
           eventosMap.set(key, {
-            titulo, canais: [canal], data, time1, time2, desc
+            titulo, canais: [canal], data, time1, time2
           });
         } else {
           eventosMap.get(key).canais.push(canal);
@@ -1379,29 +1378,30 @@ async function carregarEventosModeloVisual() {
       dataAtual = dataLabel;
     }
 
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1'/>` : "";
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 w-8 object-contain'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 w-8 object-contain'/>` : "";
     const canais = [...new Set(evento.canais)].join(", ");
     const hora = formatarHora(evento.data);
 
     const card = document.createElement("div");
-    card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
+    card.className = "flex flex-row items-center justify-between bg-white bg-opacity-5 rounded-lg px-4 py-2 mb-3 w-full max-w-3xl mx-auto min-h-[80px]";
 
     card.innerHTML = `
-      <div class="text-center text-sm text-gray-400 font-semibold uppercase">${evento.desc || "Evento Esportivo"}</div>
-      <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
-        <span class="mr-2">${evento.time1}</span>${escudo1}
-        <span class="mx-2 text-xl">X</span>
-        ${escudo2}<span class="ml-2">${evento.time2}</span>
+      <div class="flex items-center space-x-3 text-white font-bold text-sm">
+        ${escudo1}<span>${evento.time1}</span>
+        <span class="text-orange-400">X</span>
+        <span>${evento.time2}</span>${escudo2}
       </div>
-      <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
+      <div class="text-right text-sm text-white font-semibold">
+        ${hora}<br><span class="text-gray-300">${canais}</span>
+      </div>
     `;
 
     container.appendChild(card);
   }
 }
 
-carregarEventosModeloVisual();
-setInterval(carregarEventosModeloVisual, 60000);
+carregarEventosPaisagem();
+setInterval(carregarEventosPaisagem, 60000);
 </script></body>
 </html>
