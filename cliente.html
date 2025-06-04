@@ -1440,104 +1440,80 @@ async function carregarEventosModeloVisual() {
   ];
   const container = document.getElementById("jogos-container");
   container.innerHTML = "";
-  const agora = new Date();
-  agora.setSeconds(0, 0);
+  const eventosMap = new Map();
 
-  let eventos = [];
-  let eventosMap = new Map();
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      const xmlText = await res.text();
+      const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+      const programas = Array.from(xml.getElementsByTagName("programme"));
 
-  for (let offset = 0; offset < 7; offset++) {
-    eventosMap.clear();
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    hoje.setDate(hoje.getDate() + offset);
-    const amanha = new Date(hoje);
-    amanha.setDate(hoje.getDate() + 1);
+      for (const prog of programas) {
+        const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+        if (!/(vs|x)/i.test(titulo)) continue;
+        if (/século\s*x/i.test(titulo)) continue;
 
-    for (const url of urls) {
-      try {
-        const res = await fetch(url);
-        const xmlText = await res.text();
-        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-        const programas = Array.from(xml.getElementsByTagName("programme"));
+        const canal = prog.getAttribute("channel");
+        const inicio = prog.getAttribute("start");
+        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
+        const data = new Date(
+          inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
+          inicio.slice(8, 10), inicio.slice(10, 12)
+        );
+        const [time1, time2] = extrairTimes(titulo);
+        const key = `${time1}-${time2}-${data.toISOString()}`;
 
-        for (const prog of programas) {
-          const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-          const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
-          const inicio = prog.getAttribute("start");
-          const canal = prog.getAttribute("channel") || "";
-          const data = new Date(inicio.slice(0,4), inicio.slice(4,6)-1, inicio.slice(6,8), inicio.slice(8,10), inicio.slice(10,12));
-          if (data < hoje || data >= amanha || data < agora) continue; // apenas futuros
-
-          const esporte = normalizarEsporte(titulo, desc);
-          const [time1, time2] = extrairTimes(titulo);
-          const key = `${time1}-${time2}-${data.toISOString()}`;
-          if (!eventosMap.has(key)) {
-            eventosMap.set(key, { titulo, canais: [canal], data, time1, time2, desc, esporte });
-          } else {
-            eventosMap.get(key).canais.push(canal);
-          }
+        if (!eventosMap.has(key)) {
+          eventosMap.set(key, {
+            titulo, canais: [canal], data, time1, time2, desc
+          });
+        } else {
+    document.getElementById('jogos-hoje').classList.remove('hidden');
+          eventosMap.get(key).canais.push(canal);
         }
-      } catch (e) {
-        console.error("Erro ao carregar:", url, e);
       }
+    } catch (e) {
+      console.error("Erro ao carregar:", url, e);
     }
-
-    eventos = Array.from(eventosMap.values())
-      .filter(e => esporteAtual === "Outro" || e.esporte === esporteAtual)
-      .sort((a, b) => a.data - b.data);
-
-    if (eventos.length > 0) break;
   }
 
-  // Prioridade para Futebol se em "Outro", ordenado por hora
-  if (esporteAtual === "Outro") {
-    eventos = eventos
-      .sort((a, b) => {
-        if (a.esporte === "Futebol" && b.esporte !== "Futebol") return -1;
-        if (a.esporte !== "Futebol" && b.esporte === "Futebol") return 1;
-        return a.data - b.data;
-      })
-      .slice(0, 20);
-  } else {
-    eventos = eventos.slice(0, 20);
-  }
-
-  if (eventos.length === 0) {
-    container.innerHTML = "<div class='text-center text-gray-400 italic mt-6'>Nenhum evento encontrado nos próximos dias.</div>";
-    return;
-  }
+  const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
+  let dataAtual = "";
 
   for (const evento of eventos) {
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-6 mx-1'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-6 mx-1'/>` : "";
+    const dataLabel = formatarDia(evento.data);
+    if (dataLabel !== dataAtual) {
+      const dataDiv = document.createElement("div");
+      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
+      dataDiv.textContent = `📅 ${dataLabel}`;
+      container.appendChild(dataDiv);
+      dataAtual = dataLabel;
+    }
+
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1'/>` : "";
     const canais = [...new Set(evento.canais)].join(", ");
-    const aoVivo = evento.data <= agora && new Date(evento.data.getTime() + 7200000) > agora;
-    const dataFormatada = evento.data.toLocaleDateString("pt-BR", { weekday: 'short', day: '2-digit', month: '2-digit' });
-    const hora = evento.data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const hora = formatarHora(evento.data);
 
     const card = document.createElement("div");
     card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
 
     card.innerHTML = `
-      <div class="text-sm font-semibold uppercase text-orange-400 mb-1">${evento.esporte} - ${dataFormatada}</div>
-      <div class="flex items-center justify-center text-white text-lg font-bold mt-1">
-        <span class="mr-1">${evento.time1}</span>${escudo1}
-        <span class="mx-2">X</span>
-        ${escudo2}<span class="ml-1">${evento.time2}</span>
+      
+      <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
+        <span class="mr-2">${evento.time1}</span>${escudo1}
+        <span class="mx-2 text-xl">X</span>
+        ${escudo2}<span class="ml-2">${evento.time2}</span>
       </div>
-      <div class="text-center text-sm text-white mt-1 font-medium">
-        ${hora} | ${canais}
-        <span class="ml-2 px-2 py-0.5 text-xs rounded ${aoVivo ? 'bg-red-600' : 'bg-yellow-500'} text-white'>
-          ${aoVivo ? 'AO VIVO' : 'em breve'}
-        </span>
-      </div>
+      <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
     `;
 
     container.appendChild(card);
   }
 }
-setInterval(carregarEventosModeloVisual, 60000);
+
 carregarEventosModeloVisual();
+setInterval(carregarEventosModeloVisual, 60000);
 </script></body>
 </html>
