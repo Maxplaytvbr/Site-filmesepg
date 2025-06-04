@@ -1276,24 +1276,18 @@ async function carregarFilmes() {
       const card = document.createElement("div");
       card.className = "min-w-[180px] max-w-[200px] bg-white bg-opacity-5 rounded p-2 shadow flex-shrink-0";
       card.innerHTML = `
-  <div class="text-lg text-orange-400 font-bold mb-1">${evento.esporte}</div>
-  <div class="text-sm text-gray-300 font-medium mb-2">🏆 ${evento.campeonato || "Evento Esportivo"}</div>
+  <div class="text-lg text-orange-400 font-bold mb-1">\${evento.esporte}</div>
+  <div class="text-sm text-gray-300 font-medium mb-2">🏆 \${evento.campeonato || "Evento Esportivo"}</div>
   <div class="flex justify-between items-center text-white text-base font-semibold mb-2">
-    <div class="flex items-center gap-2">${escudo1}<span>${evento.time1}</span></div>
+    <div class="flex items-center gap-2">\${escudo1}<span>\${evento.time1}</span></div>
     <span class="text-orange-400 font-bold text-lg">X</span>
-    <div class="flex items-center gap-2"><span>${evento.time2}</span>${escudo2}</div>
+    <div class="flex items-center gap-2"><span>\${evento.time2}</span>\${escudo2}</div>
   </div>
   <div class="text-sm text-gray-400 leading-tight">
-    📅 ${formatarData(evento.data)} | 🕒 ${formatarHora(evento.data)}<br>
-    📺 ${[...new Set(evento.canais)].join(", ")}
+    📅 \${formatarData(evento.data)} | 🕒 \${formatarHora(evento.data)}<br>
+    📺 \${[...new Set(evento.canais)].join(", ")}
   </div>
 `;
-        <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded">
-        <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
-        <p class="text-xs text-gray-300">Canal: ${channel}</p>
-        <p class="text-xs text-gray-300">Horário: ${horario}</p>
-        <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
-      `;
       container.appendChild(card);
 
       break;
@@ -1409,18 +1403,6 @@ async function carregarEventosFinal() {
     const escudo2 = evento.escudo2 ? `<img src="${evento.escudo2}" class="h-8 w-8 object-contain">` : "";
 
     card.innerHTML = `
-  <div class="text-lg text-orange-400 font-bold mb-1">${evento.esporte}</div>
-  <div class="text-sm text-gray-300 font-medium mb-2">🏆 ${evento.campeonato || "Evento Esportivo"}</div>
-  <div class="flex justify-between items-center text-white text-base font-semibold mb-2">
-    <div class="flex items-center gap-2">${escudo1}<span>${evento.time1}</span></div>
-    <span class="text-orange-400 font-bold text-lg">X</span>
-    <div class="flex items-center gap-2"><span>${evento.time2}</span>${escudo2}</div>
-  </div>
-  <div class="text-sm text-gray-400 leading-tight">
-    📅 ${formatarData(evento.data)} | 🕒 ${formatarHora(evento.data)}<br>
-    📺 ${[...new Set(evento.canais)].join(", ")}
-  </div>
-`;
       <div class="text-sm text-orange-400 font-bold mb-1">${evento.esporte}</div>
       <div class="flex justify-between items-center text-white text-base font-semibold mb-2">
         <div class="flex items-center gap-2">${escudo1}<span>${evento.time1}</span></div>
