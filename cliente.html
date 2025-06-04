@@ -321,72 +321,27 @@
   let esporteAtual = "Futebol";
   let eventos = [];
 
-  function normalizarEsporte(titulo, desc) {
-    const t = titulo.toLowerCase() + " " + desc.toLowerCase();
-    if (t.includes("ufc") || t.includes("mma")) return "UFC";
-    if (t.includes("box") || t.includes("boxing")) return "Box";
-    if (t.includes("nba") || t.includes("basquete")) return "NBA";
-    if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
-    if (t.includes("futebol") || t.includes("campeonato") || t.includes("liga") || /\s+x\s+/.test(titulo)) return "Futebol";
-    return "Outro";
-  }
+  
+function normalizarEsporte(titulo, desc) {
+  const t = (titulo + " " + desc).toLowerCase();
+  if (t.includes("ufc") || t.includes("mma")) return "UFC";
+  if (t.includes("box") || t.includes("boxing")) return "Box";
+  if (t.includes("nba") || t.includes("basquete")) return "NBA";
+  if (t.includes("vôlei feminino")) return "Vôlei Feminino";
+  if (t.includes("vôlei masculino")) return "Vôlei Masculino";
+  if (t.includes("vôlei") || t.includes("volei")) return "Vôlei";
+  if (t.includes("feminino") && t.includes("futebol")) return "Futebol Feminino";
+  if (t.includes("sub-17")) return "Futebol Sub-17";
+  if (t.includes("sub-20")) return "Futebol Sub-20";
+  if (t.includes("brasileirão")) return "Brasileirão";
+  if (t.includes("paulistão")) return "Paulistão";
+  if (t.includes("carioca")) return "Carioca";
+  if (t.includes("champions")) return "Champions";
+  if (t.includes("laliga")) return "LaLiga";
+  if (t.includes("futebol") || t.includes("liga") || /\s+x\s+/i.test(titulo)) return "Futebol";
+  return "Outro";
+}
 
-  function formatarHora(data) {
-    return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  }
-
-  function criarCard(evt, agora) {
-    const escudos = (time) => `https://logodownload.org/wp-content/uploads/2020/10/${encodeURIComponent(time.replace(/ /g, "-")).toLowerCase()}-logo.png`;
-    const hora = formatarHora(evt.data);
-    const status = evt.data <= agora && agora < evt.fim ? "AO VIVO" : evt.data > agora ? "EM BREVE" : null;
-    if (!status) return null;
-
-    const card = document.createElement("div");
-    card.className = "min-w-[300px] max-w-[300px] bg-white bg-opacity-5 rounded-lg p-4 shadow flex flex-col justify-between";
-    card.innerHTML = `
-      <div class="text-xs text-orange-400 font-bold mb-2 uppercase">${evt.esporte}</div>
-      <div class="flex items-center justify-center gap-2 text-white font-bold text-base mb-2">
-        <img src="${escudos(evt.time1)}" class="h-8 w-auto" onerror="this.src='https://via.placeholder.com/40?text=${evt.time1[0]}'">
-        <span>${evt.time1}</span>
-        <span class="text-sm">X</span>
-        <span>${evt.time2}</span>
-        <img src="${escudos(evt.time2)}" class="h-8 w-auto" onerror="this.src='https://via.placeholder.com/40?text=${evt.time2[0]}'">
-      </div>
-      <div class="text-sm text-gray-300 truncate">${evt.desc}</div>
-      <div class="text-sm text-gray-400 mt-1">${hora} | ${evt.canais.join(", ")}</div>
-      <div class="text-xs mt-2 font-semibold ${status === 'AO VIVO' ? 'text-red-500' : 'text-green-400'}">${status}</div>
-    `;
-    return card;
-  }
-
-  async function buscarEventos() {
-    const urls = [
-      "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
-      "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
-    ];
-    const map = new Map();
-    for (const url of urls) {
-      try {
-        const xmlText = await (await fetch(url)).text();
-        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-        const programas = Array.from(xml.getElementsByTagName("programme"));
-        for (const prog of programas) {
-          const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-          if (!/(vs|x)/i.test(titulo)) continue;
-          const canal = prog.getAttribute("channel") || "";
-          const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
-          const inicio = prog.getAttribute("start");
-          const fim = prog.getAttribute("stop");
-          const data = new Date(inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8), inicio.slice(8, 10), inicio.slice(10, 12));
-          const fimData = new Date(fim.slice(0, 4), fim.slice(4, 6) - 1, fim.slice(6, 8), fim.slice(8, 10), fim.slice(10, 12));
-          const [time1, time2] = titulo.split(/\s+(vs|x)\s+/i);
-          const key = `${time1}-${time2}-${data.toISOString()}`;
-          if (!map.has(key)) {
-            map.set(key, { titulo, canais: [canal], data, fim: fimData, time1: time1.trim(), time2: time2.trim(), desc, esporte: normalizarEsporte(titulo, desc) });
-          } else {
-            map.get(key).canais.push(canal);
-          }
-        }
       } catch (e) {
         console.error("Erro ao carregar XML:", url, e);
       }
