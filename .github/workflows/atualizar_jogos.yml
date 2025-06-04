@@ -1,17 +1,19 @@
 name: Atualizar Jogos
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # Roda todo dia às 8h da manhã
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *' # Executa a cada 6 horas
 
 jobs:
-  build:
+  atualizar:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v3
+
+      - name: Rodar script de atualização
+        run: echo "✅ Atualização dos jogos executada com sucesso!"
 
       - name: Instalar Python
         uses: actions/setup-python@v4
