@@ -10,7 +10,7 @@
 <meta content="Veja a programação de hoje com filmes, séries e canais ao vivo." property="og:description"/>
 <meta content="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" property="og:image"/>
 <link href="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" rel="icon"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -259,7 +259,7 @@
             margin-left: 2px;
         }
     </style>
-</meta></head>
+</head>
 <body>
 <header class="mb-6">
 <div class="flex flex-col md:flex-row justify-between items-center mb-6">
@@ -297,7 +297,7 @@
 <h2 class="text-2xl font-bold mb-4 text-orange-500">🎬 FILMES PARA ASSISTIR HOJE</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes"></div>
 </section><section class="px-4 py-6 text-white" id="jogos-hoje">
-<h2 class="text-2xl font-bold mb-4 text-orange-500">🏆 JOGOS DE HOJE</h2>
+<h2 class="text-2xl font-bold mb-4 text-orange-500">🏟️ EVENTOS ESPORTIVOS MAXPLAY</h2>
 <div class="flex gap-4 overflow-x-auto pb-4" id="jogos-container">
 <div class="loading-spinner"></div>
 <p class="ml-4 text-gray-300">Carregando jogos...</p>
@@ -1293,78 +1293,138 @@ async function carregarFilmes() {
 window.addEventListener("DOMContentLoaded", carregarFilmes);
 setInterval(carregarFilmes, 60000);
 </script><script>
-const jogosXMLs = [
-  "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
-  "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
-];
+const escudos = {
+  "Flamengo": "https://logodownload.org/wp-content/uploads/2017/12/flamengo-logo-0.png",
+  "Palmeiras": "https://logodownload.org/wp-content/uploads/2017/12/palmeiras-logo-0.png",
+  "Corinthians": "https://logodownload.org/wp-content/uploads/2017/12/corinthians-logo-0.png",
+  "São Paulo": "https://logodownload.org/wp-content/uploads/2017/12/sao-paulo-logo-0.png",
+  "Vasco": "https://logodownload.org/wp-content/uploads/2017/12/vasco-logo-0.png",
+  "Grêmio": "https://logodownload.org/wp-content/uploads/2017/12/gremio-logo-0.png",
+  "Internacional": "https://logodownload.org/wp-content/uploads/2017/12/internacional-logo-0.png",
+  "PSG": "https://logodownload.org/wp-content/uploads/2017/12/psg-logo-0.png",
+  "Real Madrid": "https://logodownload.org/wp-content/uploads/2017/12/real-madrid-logo-0.png",
+  "Barcelona": "https://logodownload.org/wp-content/uploads/2017/12/barcelona-logo-0.png"
+};
 
-const jogosContainer = document.getElementById("jogos-container");
-const regexJogo = /.+\s+(vs|x)\s+.+/i;
+const esporteEmoji = {
+  "futebol": "⚽️",
+  "basket": "🏀",
+  "basquete": "🏀",
+  "volei": "🏐",
+  "ufc": "🥊",
+  "boxe": "🥊",
+  "beisebol": "🥎",
+  "futebol americano": "🏈",
+  "tenis": "🎾",
+  "tênis": "🎾",
+  "tênis de mesa": "🏓",
+  "ping pong": "🏓"
+};
 
-function parseEPGDate(dateString) {
-  return new Date(
-    parseInt(dateString.slice(0, 4)), 
-    parseInt(dateString.slice(4, 6)) - 1, 
-    parseInt(dateString.slice(6, 8)), 
-    parseInt(dateString.slice(8, 10)), 
-    parseInt(dateString.slice(10, 12))
-  );
+function identificarEsporte(titulo) {
+  const texto = titulo.toLowerCase();
+  for (const [esporte, emoji] of Object.entries(esporteEmoji)) {
+    if (texto.includes(esporte)) return emoji;
+  }
+  return "🎯";
 }
 
-async function carregarJogos() {
-  const hoje = new Date();
-  const jogosUnicos = new Set();
-  jogosContainer.innerHTML = "";
+function formatarDataCompleta(date) {
+  return date.toLocaleString("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
 
-  for (const url of jogosXMLs) {
+function extrairTimes(titulo) {
+  const regex = /(.+?)\s+(?:vs|x)\s+(.+)/i;
+  const match = titulo.match(regex);
+  return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
+}
+
+async function carregarEventosEsportivos() {
+  const urls = [
+    "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
+    "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
+  ];
+  const container = document.getElementById("jogos-container");
+  container.innerHTML = "";
+  let eventos = [];
+
+  for (const url of urls) {
     try {
       const res = await fetch(url);
       const xmlText = await res.text();
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "text/xml");
+      const xml = new DOMParser().parseFromString(xmlText, "text/xml");
       const programas = Array.from(xml.getElementsByTagName("programme"));
 
       for (const prog of programas) {
-        const title = prog.getElementsByTagName("title")[0]?.textContent || "";
-        const channel = prog.getAttribute("channel") || "";
-        const startStr = prog.getAttribute("start") || "";
-        const stopStr = prog.getAttribute("stop") || "";
-        if (!regexJogo.test(title)) continue;
+        const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+        if (!/(vs|x)/i.test(titulo)) continue;
+        if (/século\s*x/i.test(titulo)) continue;
 
-        const start = parseEPGDate(startStr);
-        const stop = parseEPGDate(stopStr);
-        const key = title + startStr;
+        const canal = prog.getAttribute("channel");
+        const inicio = prog.getAttribute("start");
+        const fim = prog.getAttribute("stop");
+        const data = new Date(
+          inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
+          inicio.slice(8, 10), inicio.slice(10, 12)
+        );
+        const agora = new Date();
+        const aoVivo = data <= agora && new Date(fim) > agora;
+        const esporte = identificarEsporte(titulo);
+        const [time1, time2] = extrairTimes(titulo);
+        const key = `${titulo}-${inicio}`;
 
-        if (jogosUnicos.has(key)) continue;
-        jogosUnicos.add(key);
-
-        const hojeStr = hoje.toISOString().slice(0, 10);
-        const jogoDataStr = start.toISOString().slice(0, 10);
-        const aoVivo = start <= new Date() && stop > new Date();
-
-        const card = document.createElement("div");
-        card.className = "min-w-[180px] max-w-[220px] bg-white bg-opacity-5 rounded p-3 shadow flex-shrink-0";
-
-        card.innerHTML = `
-          <h3 class="text-sm font-bold text-white mb-1">${title}</h3>
-          <p class="text-xs text-gray-300 mb-1">Canal: ${channel}</p>
-          <p class="text-xs text-gray-300 mb-1">Data: ${jogoDataStr}</p>
-          <p class="text-xs text-gray-300 mb-1">Início: ${start.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}</p>
-          ${aoVivo ? `<span class="live-indicator text-red-500 text-xs font-bold">AO VIVO</span>` : ""}
-        `;
-        jogosContainer.appendChild(card);
+        eventos.push({ key, titulo, canal, data, aoVivo, esporte, time1, time2 });
       }
     } catch (e) {
-      console.error("Erro ao carregar jogos:", url, e);
+      console.error("Erro ao carregar EPG:", url, e);
     }
   }
 
-  if (!jogosContainer.hasChildNodes()) {
-    jogosContainer.innerHTML = '<p class="text-gray-400 italic">Nenhum jogo encontrado para hoje.</p>';
+  eventos.sort((a, b) => a.data - b.data);
+
+  let dataAtual = "";
+  for (const evento of eventos) {
+    const dataLabel = evento.data.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit"
+    });
+    if (dataLabel !== dataAtual) {
+      const dataDiv = document.createElement("div");
+      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-1 mt-4";
+      dataDiv.textContent = `📅 ${dataLabel}`;
+      container.appendChild(dataDiv);
+      dataAtual = dataLabel;
+    }
+
+    const card = document.createElement("div");
+    card.className = "bg-white bg-opacity-5 rounded p-3 mb-3";
+
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='w-6 h-6 inline-block mr-1'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='w-6 h-6 inline-block mr-1'/>` : "";
+
+    card.innerHTML = `
+      <h3 class="text-sm font-bold text-white mb-1">${evento.esporte} ${escudo1}${evento.time1} vs ${escudo2}${evento.time2}</h3>
+      <p class="text-xs text-gray-300">🕒 ${formatarDataCompleta(evento.data)}</p>
+      <p class="text-xs text-gray-300">📺 ${evento.canal}</p>
+      <p class="text-xs font-bold ${evento.aoVivo ? 'text-red-500' : 'text-yellow-400'}">${evento.aoVivo ? "🔴 AO VIVO" : "🕒 Em breve"}</p>
+    `;
+    container.appendChild(card);
+  }
+
+  if (!eventos.length) {
+    container.innerHTML = "<p class='text-gray-400 italic'>Nenhum evento esportivo encontrado.</p>";
   }
 }
 
-carregarJogos();
-setInterval(carregarJogos, 60000); // atualiza a cada minuto
+carregarEventosEsportivos();
+setInterval(carregarEventosEsportivos, 60000);
 </script></body>
 </html>
