@@ -1,0 +1,33 @@
+name: Atualizar Jogos do Dia
+
+on:
+  schedule:
+    - cron: '0 11 * * *'  # Executa todos os dias às 08h (Brasília = UTC-3)
+  workflow_dispatch:
+
+jobs:
+  gerar-jogos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: pip install requests beautifulsoup4
+
+      - name: Executar script Python
+        run: python gerar_jogos.py
+
+      - name: Fazer commit do jogos.json
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add jogos.json
+          git commit -m "📅 Atualização automática dos jogos.json"
+          git push
