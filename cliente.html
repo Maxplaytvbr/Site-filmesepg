@@ -1308,21 +1308,36 @@ const escudos = {
   "TAU": "https://upload.wikimedia.org/wikipedia/pt/f/f2/AD_Taubaté_logo.png"
 };
 
+const esportes = {
+  "futebol": "⚽ Futebol",
+  "volei": "🏐 Vôlei",
+  "basquete": "🏀 Basquete",
+  "ufc": "🥊 UFC",
+  "boxe": "🥊 Boxe"
+};
+
+function detectarEsporte(titulo) {
+  const texto = titulo.toLowerCase();
+  for (const chave in esportes) {
+    if (texto.includes(chave)) return esportes[chave];
+  }
+  return "🎯 Esporte";
+}
+
 function extrairTimes(titulo) {
-  const regex = /(.+?)\s+(?:vs|x)\s+(.+)/i;
-  const match = titulo.match(regex);
-  return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
+  const match = titulo.match(/(.+?)\s+(vs|x)\s+(.+)/i);
+  return match ? [match[1].trim(), match[3].trim()] : [titulo, ""];
 }
 
-function formatarHora(date) {
-  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }).replace(":00", "H");
+function formatarHora(data) {
+  return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }).replace(":00", "H");
 }
 
-function formatarDia(date) {
-  return date.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
+function formatarData(data) {
+  return data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 }
 
-async function carregarEventosPaisagem() {
+async function carregarEventosPadronizados() {
   const urls = [
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/claro.xml",
     "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/refs/heads/main/epg.xml"
@@ -1340,6 +1355,7 @@ async function carregarEventosPaisagem() {
 
       for (const prog of programas) {
         const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+        const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
         if (!/(vs|x)/i.test(titulo)) continue;
         if (/século\s*x/i.test(titulo)) continue;
 
@@ -1354,7 +1370,13 @@ async function carregarEventosPaisagem() {
 
         if (!eventosMap.has(key)) {
           eventosMap.set(key, {
-            titulo, canais: [canal], data, time1, time2
+            esporte: detectarEsporte(titulo),
+            time1, time2,
+            escudo1: escudos[time1] || "",
+            escudo2: escudos[time2] || "",
+            canais: [canal],
+            campeonato: desc,
+            data
           });
         } else {
           eventosMap.get(key).canais.push(canal);
@@ -1366,34 +1388,25 @@ async function carregarEventosPaisagem() {
   }
 
   const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
-  let dataAtual = "";
 
   for (const evento of eventos) {
-    const dataLabel = formatarDia(evento.data);
-    if (dataLabel !== dataAtual) {
-      const dataDiv = document.createElement("div");
-      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
-      dataDiv.textContent = `📅 ${dataLabel}`;
-      container.appendChild(dataDiv);
-      dataAtual = dataLabel;
-    }
-
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 w-8 object-contain'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 w-8 object-contain'/>` : "";
-    const canais = [...new Set(evento.canais)].join(", ");
-    const hora = formatarHora(evento.data);
-
     const card = document.createElement("div");
-    card.className = "flex flex-row items-center justify-between bg-white bg-opacity-5 rounded-lg px-4 py-2 mb-3 w-full max-w-3xl mx-auto min-h-[80px]";
+    card.className = "bg-white bg-opacity-5 text-white w-full max-w-4xl mx-auto rounded-lg p-4 mb-4 shadow flex flex-col justify-between h-[160px]";
+
+    const escudo1 = evento.escudo1 ? `<img src="${evento.escudo1}" class="h-10 w-10 object-contain">` : "";
+    const escudo2 = evento.escudo2 ? `<img src="${evento.escudo2}" class="h-10 w-10 object-contain">` : "";
 
     card.innerHTML = `
-      <div class="flex items-center space-x-3 text-white font-bold text-sm">
-        ${escudo1}<span>${evento.time1}</span>
+      <div class="text-sm font-bold mb-1 text-orange-400">${evento.esporte}</div>
+      <div class="flex items-center justify-between text-lg font-bold mb-2">
+        <div class="flex items-center gap-2">${escudo1}<span>${evento.time1}</span></div>
         <span class="text-orange-400">X</span>
-        <span>${evento.time2}</span>${escudo2}
+        <div class="flex items-center gap-2"><span>${evento.time2}</span>${escudo2}</div>
       </div>
-      <div class="text-right text-sm text-white font-semibold">
-        ${hora}<br><span class="text-gray-300">${canais}</span>
+      <div class="text-xs text-gray-300">
+        🏆 ${evento.campeonato || "Evento Esportivo"}<br>
+        🗓️ ${formatarData(evento.data)} - ${formatarHora(evento.data)}<br>
+        📺 ${[...new Set(evento.canais)].join(", ")}
       </div>
     `;
 
@@ -1401,7 +1414,7 @@ async function carregarEventosPaisagem() {
   }
 }
 
-carregarEventosPaisagem();
-setInterval(carregarEventosPaisagem, 60000);
+carregarEventosPadronizados();
+setInterval(carregarEventosPadronizados, 60000);
 </script></body>
 </html>
