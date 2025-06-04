@@ -1,0 +1,33 @@
+name: Atualizar Jogos
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Roda todo dia às 8h da manhã
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Instalar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Instalar dependências
+        run: pip install requests beautifulsoup4
+
+      - name: Executar script de jogos
+        run: python script_gerar_jogos.py
+
+      - name: Commit e push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add jogos.json
+          git commit -m "Atualizar jogos automaticamente"
+          git push
