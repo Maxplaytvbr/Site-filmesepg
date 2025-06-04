@@ -1,0 +1,16 @@
+[
+  {
+    "time1": "Flamengo",
+    "time2": "Botafogo",
+    "escudo1": "https://upload.wikimedia.org/wikipedia/commons/1/16/Flamengo_braz_logo.svg",
+    "escudo2": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Botafogo_de_Futebol_e_Regatas_logo.svg",
+    "hora": "16:00",
+    "data": "2025-06-03",
+    "dia_semana": "Dom",
+    "campeonato": "Brasileirão Série A",
+    "canal": "Globo, Premiere",
+    "status": "ao_vivo",
+    "placar1": 2,
+    "placar2": 1
+  }
+]
