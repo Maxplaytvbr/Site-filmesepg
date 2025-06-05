@@ -310,7 +310,8 @@
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             padding: 1rem;
-            overflow: hidden;
+            min-width: 280px;
+            flex-shrink: 0;
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 107, 0, 0.2);
         }
@@ -421,13 +422,13 @@
         <div id="filtros-esportes" class="flex flex-wrap gap-2 mb-4">
             <button class="filter-esporte px-3 py-1 rounded bg-orange-600 text-white text-sm" data-esporte="Futebol">Futebol</button>
             <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="UFC">UFC</button>
-            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Box">Box</button>
+            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Boxe">Boxe</button>
             <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Vôlei">Vôlei</button>
-            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="NBA">NBA</button>
-            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Outro">Outro</button>
+            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Basquete">Basquete</button>
+            <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Outros Esportes">Outros</button>
         </div>
         
-        <div id="jogos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="flex overflow-x-auto gap-4 pb-4" id="jogos-container">
             <div class="loading-spinner mx-auto"></div>
         </div>
         
@@ -536,6 +537,12 @@
             "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/epg.xml"
         ];
         
+        // Canais esportivos permitidos
+        const canaisEsportivos = [
+            "SporTV", "SporTV 2", "SporTV 3", "ESPN", "ESPN 2", "ESPN 3", "ESPN 4",
+            "Fox Sports", "Fox Sports 2", "Band Sports", "Premiere", "Combate", "OFF", "Woohoo"
+        ];
+        
         // Mapeamento de logos de canais
         const channelLogos = {
             'Warner': 'https://i.postimg.cc/SxBRcBBk/IMG-6821.png',
@@ -585,7 +592,62 @@
             "RedeTV!": "https://i.postimg.cc/xTTp60p9/IMG-6927.png"
         };
         
-        // Mapeamento de classificação indicativa
+        // Logos dos canais esportivos
+        const logosCanaisEsportivos = {
+            "SporTV": "https://logodownload.org/wp-content/uploads/2017/07/sportv-logo.png",
+            "ESPN": "https://logodownload.org/wp-content/uploads/2015/05/espn-logo.png",
+            "Premiere": "https://logodownload.org/wp-content/uploads/2020/04/premiere-fc-logo.png",
+            "Fox Sports": "https://logodownload.org/wp-content/uploads/2018/09/fox-sports-logo.png",
+            "Band Sports": "https://logodownload.org/wp-content/uploads/2017/07/band-sports-logo.png",
+            "Combate": "https://logodownload.org/wp-content/uploads/2017/07/combate-logo.png"
+        };
+        
+        // Escudos de times esportivos
+        const escudos = {
+            // Times brasileiros
+            "Corinthians": "https://logodownload.org/wp-content/uploads/2019/12/corinthians-logo.png",
+            "Palmeiras": "https://logodownload.org/wp-content/uploads/2019/12/palmeiras-logo.png",
+            "São Paulo": "https://logodownload.org/wp-content/uploads/2019/12/sao-paulo-logo.png",
+            "Santos": "https://logodownload.org/wp-content/uploads/2019/12/santos-logo.png",
+            "Flamengo": "https://logodownload.org/wp-content/uploads/2019/12/flamengo-logo.png",
+            "Fluminense": "https://logodownload.org/wp-content/uploads/2019/12/fluminense-logo.png",
+            "Vasco": "https://logodownload.org/wp-content/uploads/2019/12/vasco-logo.png",
+            "Botafogo": "https://logodownload.org/wp-content/uploads/2019/12/botafogo-logo.png",
+            "Grêmio": "https://logodownload.org/wp-content/uploads/2019/12/gremio-logo.png",
+            "Internacional": "https://logodownload.org/wp-content/uploads/2019/12/internacional-logo.png",
+            "Atlético-MG": "https://logodownload.org/wp-content/uploads/2019/12/atletico-mineiro-logo.png",
+            "Cruzeiro": "https://logodownload.org/wp-content/uploads/2019/12/cruzeiro-logo.png",
+            "Bahia": "https://logodownload.org/wp-content/uploads/2019/12/bahia-logo.png",
+            "Vitória": "https://logodownload.org/wp-content/uploads/2019/12/vitoria-logo.png",
+            "Sport": "https://logodownload.org/wp-content/uploads/2019/12/sport-logo.png",
+            "Náutico": "https://logodownload.org/wp-content/uploads/2019/12/nautico-logo.png",
+            "Ceará": "https://logodownload.org/wp-content/uploads/2019/12/ceara-logo.png",
+            "Fortaleza": "https://logodownload.org/wp-content/uploads/2019/12/fortaleza-logo.png",
+            "Figueirense": "https://logodownload.org/wp-content/uploads/2019/12/figueirense-logo.png",
+            
+            // Times internacionais
+            "Brasil": "https://logodownload.org/wp-content/uploads/2016/09/selecao-brasileira-logo.png",
+            "Argentina": "https://logodownload.org/wp-content/uploads/2016/09/selecao-argentina-logo.png",
+            "França": "https://logodownload.org/wp-content/uploads/2016/09/selecao-franca-logo.png",
+            "Alemanha": "https://logodownload.org/wp-content/uploads/2016/09/selecao-alemanha-logo.png",
+            "PSG": "https://logodownload.org/wp-content/uploads/2019/12/psg-logo.png",
+            "Real Madrid": "https://logodownload.org/wp-content/uploads/2019/12/real-madrid-logo.png",
+            "Barcelona": "https://logodownload.org/wp-content/uploads/2019/12/barcelona-logo.png",
+            "Manchester United": "https://logodownload.org/wp-content/uploads/2019/12/manchester-united-logo.png",
+            "Liverpool": "https://logodownload.org/wp-content/uploads/2019/12/liverpool-logo.png",
+            "Bayern Munich": "https://logodownload.org/wp-content/uploads/2019/12/bayern-munich-logo.png",
+            
+            // Vôlei
+            "Sada Cruzeiro": "https://logodownload.org/wp-content/uploads/2020/04/sada-cruzeiro-logo.png",
+            "Minas": "https://logodownload.org/wp-content/uploads/2020/04/minas-tenis-clube-logo.png",
+            "TAU": "https://logodownload.org/wp-content/uploads/2020/04/taubate-logo.png",
+            
+            // Basquete
+            "Flamengo Basquete": "https://logodownload.org/wp-content/uploads/2019/12/flamengo-logo.png",
+            "São Paulo Basquete": "https://logodownload.org/wp-content/uploads/2019/12/sao-paulo-logo.png"
+        };
+
+        // Classificação indicativa
         const ratingImages = {
             'L': 'https://i.postimg.cc/7PnzwZp7/IMG-6891.png',
             '10': 'https://i.postimg.cc/FzpkZTjG/IMG-6892.png',
@@ -595,47 +657,6 @@
             '18': 'https://i.postimg.cc/LsgfpBp6/IMG-6896.png'
         };
         
-        // Escudos de times esportivos
-        const escudos = {
-            // Times brasileiros
-            "Corinthians": "https://upload.wikimedia.org/wikipedia/pt/5/5f/Corinthians_logo.png",
-            "Palmeiras": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg",
-            "São Paulo": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg",
-            "Santos": "https://upload.wikimedia.org/wikipedia/commons/b/be/Santos_logo.svg",
-            "Flamengo": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
-            "Fluminense": "https://upload.wikimedia.org/wikipedia/pt/0/05/Fluminense_FC_escudo.svg",
-            "Vasco": "https://upload.wikimedia.org/wikipedia/pt/5/5b/Vasco_da_Gama_Logo.png",
-            "Botafogo": "https://upload.wikimedia.org/wikipedia/pt/9/9d/Botafogo_de_Futebol_e_Regatas_logo.svg",
-            "Grêmio": "https://upload.wikimedia.org/wikipedia/pt/8/80/Gremio_logo.svg",
-            "Internacional": "https://upload.wikimedia.org/wikipedia/commons/9/9a/SC_Internacional_logo.svg",
-            "Atlético-MG": "https://upload.wikimedia.org/wikipedia/pt/9/9f/Atletico_mineiro_galo_2019.png",
-            "Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/6/69/Cruzeiro_EC_logo.svg",
-            "Bahia": "https://upload.wikimedia.org/wikipedia/pt/7/7e/Esporte_Clube_Bahia_logo.svg",
-            "Vitória": "https://upload.wikimedia.org/wikipedia/pt/0/0a/Esporte_Clube_Vit%C3%B3ria.svg",
-            "Sport": "https://upload.wikimedia.org/wikipedia/pt/8/86/Sport_Club_do_Recife_logo.svg",
-            "Náutico": "https://upload.wikimedia.org/wikipedia/pt/3/3f/Clube_N%C3%A1utico_Capibaribe.png",
-            "Ceará": "https://upload.wikimedia.org/wikipedia/pt/6/6d/Cear%C3%A1_Sporting_Club_logo.png",
-            "Fortaleza": "https://upload.wikimedia.org/wikipedia/pt/1/1c/Fortaleza_Esporte_Clube_logo.png",
-            "Figueirense": "https://upload.wikimedia.org/wikipedia/pt/6/6d/Figueirense_Logo.png",
-            
-            // Times internacionais
-            "PSG": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
-            "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
-            "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
-            "Manchester United": "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
-            "Liverpool": "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
-            "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg",
-            
-            // Vôlei
-            "Sada Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/6/6e/Sada_Cruzeiro_logo.png",
-            "Minas": "https://upload.wikimedia.org/wikipedia/pt/4/4e/Minas_T%C3%AAnis_Clube_logo.png",
-            "TAU": "https://upload.wikimedia.org/wikipedia/pt/f/f2/AD_Taubaté_logo.png",
-            
-            // Basquete
-            "Flamengo Basquete": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
-            "São Paulo Basquete": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg"
-        };
-
         // Dias da semana abreviados
         const weekdaysShort = {
             0: 'dom', 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab'
@@ -656,7 +677,7 @@
             'kids': ['Cartoon Network', 'Nickelodeon', 'Nick Jr.', 'Disney Channel', 'Disney Junior', 'Discovery Kids', 'Gloob', 
                     'Gloobinho', 'Tooncast', 'Cartoonito', 'ZooMoo', 'TV Rá-Tim-Bum', 'Nat Geo Kids'],
             
-            'sports': ['SporTV', 'SporTV 2', 'SporTV 3', 'ESPN', 'ESPN 2', 'ESPN 3', 'ESPN 4', 'Fox Sports 2', 
+            'sports': ['SporTV', 'SporTV 2', 'SporTV 3', 'ESPN', 'ESPN 2', 'ESPN 3', 'ESPN 4', 'Fox Sports', 'Fox Sports 2', 
                       'Band Sports', 'Premiere', 'Premiere 2', 'Premiere 3', 'Premiere 4', 'Premiere 5', 'Premiere 6', 
                       'Premiere 7', 'Premiere 8', 'Combate', 'OFF', 'Woohoo'],
             
@@ -1414,6 +1435,149 @@
                 return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
             }
             
+            // Funções auxiliares para eventos esportivos
+            function formatarDataHoraCompleta(date) {
+                const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+                const dia = date.getDate().toString().padStart(2, '0');
+                const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+                const hora = date.getHours().toString().padStart(2, '0');
+                const diaSemana = diasSemana[date.getDay()];
+                
+                return `${dia}/${mes} ${hora}h (${diaSemana})`;
+            }
+            
+            function getStatusEvento(dataEvento, agora) {
+                const inicio = new Date(dataEvento);
+                const fim = new Date(inicio);
+                fim.setHours(fim.getHours() + 2); // Assumindo duração de 2 horas
+                
+                if (inicio <= agora && fim > agora) return 'live';
+                if (inicio > agora && (inicio - agora) <= (5 * 60 * 60 * 1000)) return 'soon';
+                return 'upcoming';
+            }
+            
+            function corrigirNomeTime(nome) {
+                const correcoes = {
+                    "VT-": "",
+                    "brasil": "Brasil",
+                    "vitorias": "Vitória",
+                    "fla": "Flamengo",
+                    "flu": "Fluminense",
+                    "bot": "Botafogo",
+                    "cor": "Corinthians",
+                    "pal": "Palmeiras",
+                    "spfc": "São Paulo",
+                    "san": "Santos",
+                    "campeonato": "",
+                    "brasileiro": "",
+                    "libertadores": ""
+                };
+                
+                let nomeCorrigido = nome;
+                for (const [erro, correcao] of Object.entries(correcoes)) {
+                    nomeCorrigido = nomeCorrigido.replace(new RegExp(erro, 'gi'), correcao);
+                }
+                
+                // Capitalizar primeira letra
+                nomeCorrigido = nomeCorrigido.trim();
+                if (nomeCorrigido.length > 0) {
+                    nomeCorrigido = nomeCorrigido.charAt(0).toUpperCase() + nomeCorrigido.slice(1).toLowerCase();
+                }
+                
+                return nomeCorrigido || "Time desconhecido";
+            }
+            
+            function normalizarEsporte(titulo, desc) {
+                const texto = (titulo + desc).toLowerCase();
+                
+                if (/(futebol|brasileiro|brasileirão|paulista|carioca|libertadores|laliga|champions)/i.test(texto)) {
+                    return "Futebol";
+                }
+                if (/(ufc|mma)/i.test(texto)) {
+                    return "UFC";
+                }
+                if (/box/i.test(texto)) {
+                    return "Boxe";
+                }
+                if (/(volei|vôlei)/i.test(texto)) {
+                    return "Vôlei";
+                }
+                if (/(nba|basquete)/i.test(texto)) {
+                    return "Basquete";
+                }
+                return "Outros Esportes";
+            }
+            
+            function extrairTimes(titulo) {
+                // Primeiro tenta encontrar padrão com "x" ou "vs"
+                const regexPadrao = /(.+?)\s+(?:vs|x|×)\s+(.+)/i;
+                const matchPadrao = titulo.match(regexPadrao);
+                if (matchPadrao) {
+                    return [corrigirNomeTime(matchPadrao[1]), corrigirNomeTime(matchPadrao[2])];
+                }
+                
+                // Se não encontrar, tenta dividir por hífen
+                const partes = titulo.split(/[-–]/);
+                if (partes.length >= 2) {
+                    return [corrigirNomeTime(partes[0]), corrigirNomeTime(partes[1])];
+                }
+                
+                // Se não conseguir, retorna o título original
+                return [corrigirNomeTime(titulo), ""];
+            }
+            
+            function getLogoCanalEsportivo(canalNome) {
+                for (const [canal, logo] of Object.entries(logosCanaisEsportivos)) {
+                    if (canalNome.includes(canal)) return logo;
+                }
+                return null;
+            }
+            
+            function criarCardEvento(evento) {
+                const escudo1 = escudos[evento.time1] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time1.substring(0, 2);
+                const escudo2 = escudos[evento.time2] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time2.substring(0, 2);
+                const dataHora = formatarDataHoraCompleta(evento.data);
+                const logoCanal = getLogoCanalEsportivo(evento.canal);
+                
+                const card = document.createElement("div");
+                card.className = "sport-event-card";
+                
+                // Adiciona classes baseadas no status
+                if (evento.status === 'live') {
+                    card.classList.add("live");
+                } else if (evento.status === 'soon') {
+                    card.classList.add("soon");
+                }
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-orange-500">${evento.esporte}</span>
+                        <span class="text-xs text-gray-400">${dataHora}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex flex-col items-center w-1/3">
+                            <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1">
+                            <span class="text-sm text-center text-white">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
+                        </div>
+                        <div class="text-xl font-bold text-white mx-2">X</div>
+                        <div class="flex flex-col items-center w-1/3">
+                            <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1">
+                            <span class="text-sm text-center text-white">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center gap-2">
+                        ${logoCanal ? `<img src="${logoCanal}" alt="${evento.canal}" class="h-4">` : ''}
+                        <span class="text-xs text-gray-300">${evento.canal}</span>
+                        ${evento.status === 'live' ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
+                        ${evento.status === 'soon' ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
+                    </div>
+                `;
+                
+                return card;
+            }
+            
             async function carregarEventosEsportivos() {
                 const container = document.getElementById("jogos-container");
                 container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
@@ -1429,7 +1593,16 @@
                         
                         Array.from(xml.getElementsByTagName("programme")).forEach(prog => {
                             const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-                            if (!/(vs|x|×)/i.test(titulo)) return;
+                            const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
+                            const canal = prog.getAttribute("channel") || "";
+                            
+                            // Verifica se é um canal esportivo
+                            const isCanalEsportivo = canaisEsportivos.some(c => canal.includes(c));
+                            if (!isCanalEsportivo) return;
+                            
+                            // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
+                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga)/i.test(titulo + desc);
+                            if (!isEventoEsportivo) return;
                             
                             const inicio = prog.getAttribute("start");
                             const data = new Date(
@@ -1450,179 +1623,69 @@
                             
                             if (data < hoje || data >= amanha) return;
                             
+                            // Extrai e corrige os nomes dos times
                             const [time1, time2] = extrairTimes(titulo);
-                            const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
+                            if (!time1 || !time2) return;
+                            
+                            // Determina o esporte
                             const esporte = normalizarEsporte(titulo, desc);
                             
-                            if (currentSportFilter !== "Todos" && esporte !== currentSportFilter) return;
+                            // Filtra por esporte selecionado
+                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
                             
-                            // Verificar se o evento já terminou
-                            const fimEvento = new Date(data);
-                            fimEvento.setHours(fimEvento.getHours() + 2); // Assumindo que eventos duram 2 horas
+                            // Determina o status do evento
+                            const status = getStatusEvento(data, now);
                             
-                            if (fimEvento < now) return; // Não mostrar eventos que já terminaram
-                            
+                            // Cria o objeto do evento
                             const evento = {
                                 titulo, 
                                 data, 
                                 time1, 
                                 time2, 
-                                desc: simplificarDescricao(desc), 
                                 esporte,
-                                canal: prog.getAttribute("channel")
+                                canal,
+                                status
                             };
                             
+                            // Adiciona ao mapa (evita duplicatas)
                             eventosMap.set(`${time1}-${time2}-${data.getTime()}`, evento);
                         });
                     }
                     
                     container.innerHTML = "";
-                    const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
+                    const eventos = Array.from(eventosMap.values())
+                        .sort((a, b) => a.data - b.data);
                     
                     if (eventos.length === 0) {
                         container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento encontrado para ${currentSportFilter}</p>`;
                         return;
                     }
                     
-                    let dataAtual = "";
+                    // Agrupa por data
+                    const eventosPorData = {};
+                    eventos.forEach(evento => {
+                        const dataKey = evento.data.toLocaleDateString('pt-BR');
+                        if (!eventosPorData[dataKey]) {
+                            eventosPorData[dataKey] = [];
+                        }
+                        eventosPorData[dataKey].push(evento);
+                    });
                     
-                    for (const evento of eventos) {
-                        const dataLabel = formatarDia(evento.data);
-                        if (dataLabel !== dataAtual) {
-                            const dataDiv = document.createElement("div");
-                            dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6 col-span-full";
-                            dataDiv.textContent = `📅 ${dataLabel}`;
-                            container.appendChild(dataDiv);
-                            dataAtual = dataLabel;
-                        }
+                    // Adiciona cabeçalho de data e os cards
+                    for (const [dataStr, eventosDaData] of Object.entries(eventosPorData)) {
+                        const dataHeader = document.createElement("div");
+                        dataHeader.className = "text-vibrant-orange font-bold text-sm mb-2 mt-4 w-full";
+                        dataHeader.textContent = `📅 ${dataStr}`;
+                        container.appendChild(dataHeader);
                         
-                        const escudo1 = escudos[evento.time1] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time1.substring(0, 2);
-                        const escudo2 = escudos[evento.time2] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time2.substring(0, 2);
-                        const canais = [...new Set(evento.canal.split(','))].join(", ");
-                        const hora = formatarHora(evento.data);
-                        
-                        const card = document.createElement("div");
-                        card.className = "sport-event-card";
-                        
-                        // Verificar status do evento
-                        const now = new Date();
-                        const startTime = new Date(evento.data);
-                        const endTime = new Date(startTime);
-                        endTime.setHours(endTime.getHours() + 2); // Assumindo duração de 2 horas
-                        
-                        if (startTime <= now && endTime > now) {
-                            card.classList.add("live");
-                        } else if (startTime > now && (startTime - now) <= (5 * 60 * 60 * 1000)) {
-                            card.classList.add("soon");
-                        }
-                        
-                        card.innerHTML = `
-                            <div class="text-center text-xs text-orange-400 font-semibold uppercase mb-2">
-                                ${evento.desc}
-                            </div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex flex-col items-center w-1/3">
-                                    <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1">
-                                    <span class="text-sm text-center text-white">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
-                                </div>
-                                <div class="text-xl font-bold text-white mx-2">X</div>
-                                <div class="flex flex-col items-center w-1/3">
-                                    <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1">
-                                    <span class="text-sm text-center text-white">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
-                                </div>
-                            </div>
-                            <div class="text-center text-xs text-gray-300">
-                                <span class="font-semibold">${hora}</span> | ${canais}
-                                ${startTime <= now && endTime > now ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
-                                ${startTime > now && (startTime - now) <= (5 * 60 * 60 * 1000) ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
-                            </div>
-                        `;
-                        
-                        container.appendChild(card);
+                        eventosDaData.forEach(evento => {
+                            container.appendChild(criarCardEvento(evento));
+                        });
                     }
                 } catch (error) {
                     console.error("Erro ao carregar eventos esportivos:", error);
                     container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos</p>`;
                 }
-            }
-            
-            function extrairTimes(titulo) {
-                const regex = /(.+?)\s+(?:vs|x|×)\s+(.+)/i;
-                const match = titulo.match(regex);
-                return match ? [match[1].trim(), match[2].trim()] : [titulo, ""];
-            }
-            
-            function formatarHora(date) {
-                return date.toLocaleTimeString("pt-BR", { 
-                    hour: "2-digit", 
-                    minute: "2-digit",
-                    hour12: false
-                }).replace(":00", "H");
-            }
-            
-            function formatarDia(date) {
-                return date.toLocaleDateString("pt-BR", { 
-                    weekday: "short", 
-                    day: "2-digit", 
-                    month: "2-digit"
-                });
-            }
-            
-            function normalizarEsporte(titulo, desc) {
-                const texto = (titulo + desc).toLowerCase();
-                
-                // Futebol
-                if (texto.includes("futebol") || 
-                    texto.includes("brasileiro") || texto.includes("brasileirão") ||
-                    texto.includes("paulista") || texto.includes("paulistão") ||
-                    texto.includes("carioca") || texto.includes("cariocão") ||
-                    texto.includes("libertadores") || texto.includes("laliga") ||
-                    texto.includes("champions") || texto.includes("sub-20") ||
-                    texto.includes("sub-17") || texto.includes("futebol feminino")) {
-                    return "Futebol";
-                }
-                
-                // UFC
-                if (texto.includes("ufc") || texto.includes("mma") || texto.includes("ufc fight pass")) {
-                    return "UFC";
-                }
-                
-                // Box
-                if (texto.includes("box")) {
-                    return "Box";
-                }
-                
-                // Vôlei
-                if (texto.includes("volei") || texto.includes("vôlei") || 
-                    texto.includes("volei feminino") || texto.includes("volei masculino")) {
-                    return "Vôlei";
-                }
-                
-                // NBA
-                if (texto.includes("nba") || texto.includes("basquete")) {
-                    return "NBA";
-                }
-                
-                return "Outro";
-            }
-            
-            function simplificarDescricao(desc) {
-                const palavrasChave = [
-                    "campeonato brasileiro", "brasileirão", "paulista", "paulistão",
-                    "carioca", "cariocão", "libertadores", "laliga", "champions",
-                    "volei feminino", "volei masculino", "box", "ufc", "sub-20",
-                    "sub-17", "futebol feminino"
-                ];
-                
-                // Encontrar a primeira palavra-chave que aparece na descrição
-                for (const palavra of palavrasChave) {
-                    if (desc.toLowerCase().includes(palavra)) {
-                        return palavra.charAt(0).toUpperCase() + palavra.slice(1);
-                    }
-                }
-                
-                // Se não encontrar, limitar a 4 palavras
-                return desc.split(' ').slice(0, 4).join(' ');
             }
         });
     </script>
