@@ -1,0 +1,30 @@
+<!-- index-revenda.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Revendedor</title>
+</head>
+<body>
+  <h2>Login do Revendedor</h2>
+  <input id="usuario" placeholder="Usuário" />
+  <input id="senha" placeholder="Senha" type="password" />
+  <button onclick="loginRevenda()">Entrar</button>
+
+  <script>
+    async function loginRevenda() {
+      const usuario = document.getElementById('usuario').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+
+      const res = await fetch('revendas.json');
+      const dados = await res.json();
+
+      if (dados[usuario] && dados[usuario].senha === senha && dados[usuario].ativo) {
+        window.location.href = 'revendas/' + usuario + '/index.html';
+      } else {
+        alert("Revendedor inválido ou acesso bloqueado.");
+      }
+    }
+  </script>
+</body>
+</html>
