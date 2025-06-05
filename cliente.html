@@ -345,6 +345,58 @@
             overflow: hidden;
         }
         
+        /* Cards de eventos MMA */
+        .sport-event-card.mma {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #d20a0a;
+        }
+        
+        .sport-event-card.mma .fighter-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #d20a0a;
+            margin-bottom: 8px;
+        }
+        
+        .sport-event-card.mma .fighter-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .sport-event-card.mma .fighter-nickname {
+            font-size: 0.8rem;
+            color: #d20a0a;
+            font-style: italic;
+        }
+        
+        .sport-event-card.mma .fighter-record {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        
+        /* Botão Voltar ao Topo */
+        #back-to-top {
+            transition: all 0.3s ease;
+        }
+        
+        #back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(255, 107, 0, 0.3);
+        }
+        
+        /* Estrela de favoritos */
+        .favorite-star {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .favorite-star:hover {
+            transform: scale(1.2);
+        }
+        
         /* Responsividade */
         @media (max-width: 640px) {
             .filters-container {
@@ -362,10 +414,21 @@
             .channel-card {
                 min-height: 200px;
             }
+            
+            .sport-event-card {
+                min-width: 240px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Botão Voltar ao Topo -->
+    <button id="back-to-top" class="fixed bottom-4 right-4 bg-vibrant-orange text-white p-3 rounded-full shadow-lg hidden z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
     <header class="mb-6">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
             <div class="flex items-center mb-4 md:mb-0">
@@ -475,6 +538,9 @@
                 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="adult">Adulto</button>
                 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="open">Canais Abertos</button>
                 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-filter="news">Notícias</button>
+                <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="morning">Manhã</button>
+                <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="afternoon">Tarde</button>
+                <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="evening">Noite</button>
             </div>
         </div>
         
@@ -626,25 +692,48 @@
             "Figueirense": "https://logodownload.org/wp-content/uploads/2019/12/figueirense-logo.png",
             
             // Times internacionais
-            "Brasil": "https://logodownload.org/wp-content/uploads/2016/09/selecao-brasileira-logo.png",
-            "Argentina": "https://logodownload.org/wp-content/uploads/2016/09/selecao-argentina-logo.png",
-            "França": "https://logodownload.org/wp-content/uploads/2016/09/selecao-franca-logo.png",
-            "Alemanha": "https://logodownload.org/wp-content/uploads/2016/09/selecao-alemanha-logo.png",
-            "PSG": "https://logodownload.org/wp-content/uploads/2019/12/psg-logo.png",
-            "Real Madrid": "https://logodownload.org/wp-content/uploads/2019/12/real-madrid-logo.png",
-            "Barcelona": "https://logodownload.org/wp-content/uploads/2019/12/barcelona-logo.png",
-            "Manchester United": "https://logodownload.org/wp-content/uploads/2019/12/manchester-united-logo.png",
-            "Liverpool": "https://logodownload.org/wp-content/uploads/2019/12/liverpool-logo.png",
-            "Bayern Munich": "https://logodownload.org/wp-content/uploads/2019/12/bayern-munich-logo.png",
+            "Brasil": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/1200px-Flag_of_Brazil.svg.png",
+            "Argentina": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Flag_of_Argentina.svg/1200px-Flag_of_Argentina.svg.png",
+            "França": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_France.svg/1200px-Flag_of_France.svg.png",
+            "Alemanha": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1200px-Flag_of_Germany.svg.png",
+            "PSG": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/1200px-Paris_Saint-Germain_F.C..svg.png",
+            "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/1200px-Real_Madrid_CF.svg.png",
+            "Barcelona": "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_%28crest%29.svg/1200px-FC_Barcelona_%28crest%29.svg.png",
+            "Manchester United": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Manchester_United_FC_crest.svg/1200px-Manchester_United_FC_crest.svg.png",
+            "Liverpool": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/1200px-Liverpool_FC.svg.png",
+            "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/1200px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
             
             // Vôlei
-            "Sada Cruzeiro": "https://logodownload.org/wp-content/uploads/2020/04/sada-cruzeiro-logo.png",
-            "Minas": "https://logodownload.org/wp-content/uploads/2020/04/minas-tenis-clube-logo.png",
-            "TAU": "https://logodownload.org/wp-content/uploads/2020/04/taubate-logo.png",
+            "Sada Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/thumb/5/5e/Sada_Cruzeiro_Volei.png/1200px-Sada_Cruzeiro_Volei.png",
+            "Minas": "https://upload.wikimedia.org/wikipedia/pt/thumb/2/2e/Minas_T%C3%AAnis_Clube.png/1200px-Minas_T%C3%AAnis_Clube.png",
+            "TAU": "https://upload.wikimedia.org/wikipedia/pt/thumb/1/1e/Taubat%C3%A9_VC.png/1200px-Taubat%C3%A9_VC.png",
             
             // Basquete
-            "Flamengo Basquete": "https://logodownload.org/wp-content/uploads/2019/12/flamengo-logo.png",
-            "São Paulo Basquete": "https://logodownload.org/wp-content/uploads/2019/12/sao-paulo-logo.png"
+            "Flamengo Basquete": "https://upload.wikimedia.org/wikipedia/pt/thumb/f/f7/Flamengo_logo.svg/1200px-Flamengo_logo.svg.png",
+            "São Paulo Basquete": "https://upload.wikimedia.org/wikipedia/pt/thumb/2/2e/Sao_Paulo_FC_logo.svg/1200px-Sao_Paulo_FC_logo.svg.png",
+            
+            // NBA
+            "Lakers": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Los_Angeles_Lakers_logo.svg/1200px-Los_Angeles_Lakers_logo.svg.png",
+            "Warriors": "https://upload.wikimedia.org/wikipedia/en/thumb/0/01/Golden_State_Warriors_logo.svg/1200px-Golden_State_Warriors_logo.svg.png",
+            "Bulls": "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/Chicago_Bulls_logo.svg/1200px-Chicago_Bulls_logo.svg.png",
+            
+            // UFC (para eventos de MMA)
+            "UFC": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/UFC_Logo.svg/1200px-UFC_Logo.svg.png"
+        };
+
+        // Imagens de lutadores do UFC
+        const lutadoresUFC = {
+            "Gilbert Burns": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-03/BURNS_GILBERT_L_BELTON_03_04.png",
+            "Rodolfo Bellato": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-11/BELLATO_RODOLFO_L_11-04.png",
+            "Mairon Santos": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2024-01/SANTOS_MAIRON_L_01-20.png",
+            "Luana Santos": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-06/SANTOS_LUANA_L_06-03.png",
+            "Luana Pinheiro": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-05/PINHEIRO_LUANA_L_05-06.png",
+            "Sean O'Malley": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-08/OMALLEY_SEAN_L_08-19.png",
+            "Israel Adesanya": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-09/ADESANYA_ISRAEL_L_09-09.png",
+            "Jon Jones": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-03/JONES_JON_L_03-04.png",
+            "Anderson Silva": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2020-07/SILVA_ANDERSON_L_07-11.png",
+            "Vitor Belfort": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2018-05/BELFORT_VITOR_L_05-12.png",
+            "José Aldo": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2022-08/ALDO_JOSE_L_08-20.png"
         };
 
         // Classificação indicativa
@@ -687,8 +776,7 @@
             
             'adult': ['Playboy TV', 'Sexy Hot', 'Venus', 'Sextreme', 'Hustler TV', 'Penthouse TV']
         };
-        
-        // Inicialização quando o DOM estiver pronto
+// Inicialização quando o DOM estiver pronto
         document.addEventListener('DOMContentLoaded', () => {
             // Elementos da interface
             const loadingElement = document.getElementById('loading');
@@ -706,6 +794,7 @@
             const verProximoDiaBtn = document.getElementById('ver-proximo-dia');
             const verHojeBtn = document.getElementById('ver-hoje');
             const verDiaAnteriorBtn = document.getElementById('ver-dia-anterior');
+            const backToTopButton = document.getElementById('back-to-top');
             
             // Containers de canais por categoria
             const moviesChannels = document.getElementById('movies-channels');
@@ -729,6 +818,19 @@
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
+            // Configurar botão voltar ao topo
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('hidden');
+                } else {
+                    backToTopButton.classList.add('hidden');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
             fetchEPGData();
             carregarFilmes();
             carregarEventosEsportivos();
@@ -742,7 +844,13 @@
             });
             
             filterButtons.forEach(button => {
-                button.addEventListener('click', handleFilterClick);
+                button.addEventListener('click', function() {
+                    if (this.dataset.time) {
+                        handleTimeFilterClick.call(this);
+                    } else {
+                        handleFilterClick.call(this);
+                    }
+                });
             });
             
             filterEsporteButtons.forEach(button => {
@@ -827,7 +935,11 @@
             }
             
             function handleFilterClick() {
-                filterButtons.forEach(btn => btn.classList.remove('active'));
+                filterButtons.forEach(btn => {
+                    if (!btn.dataset.time) {
+                        btn.classList.remove('active');
+                    }
+                });
                 this.classList.add('active');
                 
                 const filter = this.dataset.filter;
@@ -848,6 +960,37 @@
                         }
                     });
                 }
+            }
+            
+            function handleTimeFilterClick() {
+                const timeRange = this.dataset.time;
+                const now = new Date();
+                const currentHour = now.getHours();
+                
+                document.querySelectorAll('.programme-item').forEach(item => {
+                    const timeText = item.querySelector('.programme-time').textContent;
+                    const hourMatch = timeText.match(/(\d{1,2}):\d{2}/);
+                    if (!hourMatch) return;
+                    
+                    const hour = parseInt(hourMatch[1]);
+                    let showItem = false;
+                    
+                    switch(timeRange) {
+                        case 'morning':
+                            showItem = hour >= 6 && hour < 12;
+                            break;
+                        case 'afternoon':
+                            showItem = hour >= 12 && hour < 18;
+                            break;
+                        case 'evening':
+                            showItem = hour >= 18 || hour < 6;
+                            break;
+                        default:
+                            showItem = true;
+                    }
+                    
+                    item.style.display = showItem ? 'block' : 'none';
+                });
             }
             
             function handleSportFilterClick() {
@@ -1128,8 +1271,22 @@
                     channelName.substring(0, 20) + '...' : channelName;
                 nameElement.title = channelName;
                 
+                // Adicionar estrela de favoritos
+                const favorites = JSON.parse(localStorage.getItem('favoriteChannels')) || {};
+                const isFavorite = favorites[channelId];
+                
+                const starIcon = document.createElement('span');
+                starIcon.className = `favorite-star ml-auto ${isFavorite ? 'text-yellow-400' : 'text-gray-400'}`;
+                starIcon.innerHTML = '★';
+                starIcon.dataset.channel = channelId;
+                starIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(channelId, channelName);
+                };
+                
                 header.appendChild(logoElement);
                 header.appendChild(nameElement);
+                header.appendChild(starIcon);
                 card.appendChild(header);
                 
                 // Lista de programas
@@ -1155,6 +1312,19 @@
                 card.appendChild(button);
                 
                 return card;
+            }
+            
+            function toggleFavorite(channelId, channelName) {
+                const favorites = JSON.parse(localStorage.getItem('favoriteChannels')) || {};
+                favorites[channelId] = !favorites[channelId];
+                localStorage.setItem('favoriteChannels', JSON.stringify(favorites));
+                
+                // Atualizar UI
+                const starIcon = document.querySelector(`.favorite-star[data-channel="${channelId}"]`);
+                if (starIcon) {
+                    starIcon.classList.toggle('text-yellow-400', favorites[channelId]);
+                    starIcon.classList.toggle('text-gray-400', !favorites[channelId]);
+                }
             }
             
             function createProgrammeItem(programme, isCurrent = false) {
@@ -1493,7 +1663,7 @@
                 if (/(futebol|brasileiro|brasileirão|paulista|carioca|libertadores|laliga|champions)/i.test(texto)) {
                     return "Futebol";
                 }
-                if (/(ufc|mma)/i.test(texto)) {
+                if (/(ufc|mma|luta|mixed martial arts)/i.test(texto)) {
                     return "UFC";
                 }
                 if (/box/i.test(texto)) {
@@ -1534,8 +1704,24 @@
             }
             
             function criarCardEvento(evento) {
-                const escudo1 = escudos[evento.time1] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time1.substring(0, 2);
-                const escudo2 = escudos[evento.time2] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time2.substring(0, 2);
+                // Função auxiliar para encontrar o escudo mais adequado
+                const encontrarEscudo = (nomeTime) => {
+                    // Primeiro verifica se temos um escudo exato
+                    if (escudos[nomeTime]) return escudos[nomeTime];
+                    
+                    // Se não, procura por correspondência parcial
+                    for (const [time, escudo] of Object.entries(escudos)) {
+                        if (nomeTime.toLowerCase().includes(time.toLowerCase())) {
+                            return escudo;
+                        }
+                    }
+                    
+                    // Se não encontrar, usa um placeholder
+                    return `https://via.placeholder.com/80?text=${encodeURIComponent(nomeTime.substring(0, 2))}`;
+                };
+
+                const escudo1 = encontrarEscudo(evento.time1);
+                const escudo2 = encontrarEscudo(evento.time2);
                 const dataHora = formatarDataHoraCompleta(evento.data);
                 const logoCanal = getLogoCanalEsportivo(evento.canal);
                 
@@ -1557,13 +1743,73 @@
                     
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex flex-col items-center w-1/3">
-                            <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1">
+                            <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=${encodeURIComponent(evento.time1.substring(0, 2))}'">
                             <span class="text-sm text-center text-white">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
                         </div>
                         <div class="text-xl font-bold text-white mx-2">X</div>
                         <div class="flex flex-col items-center w-1/3">
-                            <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1">
+                            <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=${encodeURIComponent(evento.time2.substring(0, 2))}'">
                             <span class="text-sm text-center text-white">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center gap-2">
+                        ${logoCanal ? `<img src="${logoCanal}" alt="${evento.canal}" class="h-4">` : ''}
+                        <span class="text-xs text-gray-300">${evento.canal}</span>
+                        ${evento.status === 'live' ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
+                        ${evento.status === 'soon' ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
+                    </div>
+                `;
+                
+                return card;
+            }
+            
+            function criarCardEventoMMA(evento) {
+                // Função para encontrar a imagem do lutador
+                const encontrarImagemLutador = (nomeLutador) => {
+                    // Procura pelo lutador (com tolerância a variações no nome)
+                    for (const [nome, img] of Object.entries(lutadoresUFC)) {
+                        if (nomeLutador.toLowerCase().includes(nome.toLowerCase())) {
+                            return img;
+                        }
+                    }
+                    
+                    // Se não encontrar, usa um placeholder genérico
+                    return `https://via.placeholder.com/150?text=${encodeURIComponent(nomeLutador.substring(0, 1))}`;
+                };
+
+                const imagemLutador1 = encontrarImagemLutador(evento.time1);
+                const imagemLutador2 = encontrarImagemLutador(evento.time2);
+                const dataHora = formatarDataHoraCompleta(evento.data);
+                const logoCanal = getLogoCanalEsportivo(evento.canal);
+                
+                const card = document.createElement("div");
+                card.className = "sport-event-card mma";
+                
+                // Adiciona classes baseadas no status
+                if (evento.status === 'live') {
+                    card.classList.add("live");
+                } else if (evento.status === 'soon') {
+                    card.classList.add("soon");
+                }
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-orange-500">${evento.esporte}</span>
+                        <span class="text-xs text-gray-400">${dataHora}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex flex-col items-center w-1/3">
+                            <img src="${imagemLutador1}" alt="${evento.time1}" class="fighter-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/150?text=${encodeURIComponent(evento.time1.substring(0, 1))}'">
+                            <span class="fighter-name">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
+                            <span class="fighter-nickname">${evento.time1.includes(' ') ? evento.time1.split(' ')[1] : ''}</span>
+                        </div>
+                        <div class="text-xl font-bold text-white mx-2">VS</div>
+                        <div class="flex flex-col items-center w-1/3">
+                            <img src="${imagemLutador2}" alt="${evento.time2}" class="fighter-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/150?text=${encodeURIComponent(evento.time2.substring(0, 1))}'">
+                            <span class="fighter-name">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
+                            <span class="fighter-nickname">${evento.time2.includes(' ') ? evento.time2.split(' ')[1] : ''}</span>
                         </div>
                     </div>
                     
@@ -1601,7 +1847,7 @@
                             if (!isCanalEsportivo) return;
                             
                             // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
-                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga)/i.test(titulo + desc);
+                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga|luta|ufc|mma)/i.test(titulo + desc);
                             if (!isEventoEsportivo) return;
                             
                             const inicio = prog.getAttribute("start");
@@ -1623,15 +1869,26 @@
                             
                             if (data < hoje || data >= amanha) return;
                             
-                            // Extrai e corrige os nomes dos times
-                            const [time1, time2] = extrairTimes(titulo);
-                            if (!time1 || !time2) return;
-                            
                             // Determina o esporte
                             const esporte = normalizarEsporte(titulo, desc);
                             
                             // Filtra por esporte selecionado
                             if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
+                            
+                            // Extrai os participantes
+                            let [time1, time2] = extrairTimes(titulo);
+                            
+                            // Para UFC/MMA, ajusta os nomes
+                            if (esporte === "UFC") {
+                                // Tenta extrair os nomes dos lutadores
+                                const lutadores = titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 [null, time1, time2];
+                                time1 = lutadores[1] || time1;
+                                time2 = lutadores[2] || time2;
+                            }
+                            
+                            if (!time1 || !time2) return;
                             
                             // Determina o status do evento
                             const status = getStatusEvento(data, now);
@@ -1679,7 +1936,12 @@
                         container.appendChild(dataHeader);
                         
                         eventosDaData.forEach(evento => {
-                            container.appendChild(criarCardEvento(evento));
+                            // Decide qual tipo de card usar baseado no esporte
+                            if (evento.esporte === "UFC") {
+                                container.appendChild(criarCardEventoMMA(evento));
+                            } else {
+                                container.appendChild(criarCardEvento(evento));
+                            }
                         });
                     }
                 } catch (error) {
