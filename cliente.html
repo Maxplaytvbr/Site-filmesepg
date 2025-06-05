@@ -1440,7 +1440,16 @@ async function carregarEventosModeloVisual() {
   ];
   const container = document.getElementById("jogos-container");
   container.innerHTML = "";
-  const eventosMap = new Map();
+  const agora = new Date();
+  agora.setSeconds(0, 0);
+
+  let eventos = [];
+  let eventosMap = new Map();
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const amanha = new Date(hoje);
+  amanha.setDate(hoje.getDate() + 1);
 
   for (const url of urls) {
     try {
@@ -1451,25 +1460,18 @@ async function carregarEventosModeloVisual() {
 
       for (const prog of programas) {
         const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-        if (!/(vs|x)/i.test(titulo)) continue;
-        if (/século\s*x/i.test(titulo)) continue;
-
-        const canal = prog.getAttribute("channel");
-        const inicio = prog.getAttribute("start");
         const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
-        const data = new Date(
-          inicio.slice(0, 4), inicio.slice(4, 6) - 1, inicio.slice(6, 8),
-          inicio.slice(8, 10), inicio.slice(10, 12)
-        );
+        const inicio = prog.getAttribute("start");
+        const canal = prog.getAttribute("channel") || "";
+        const data = new Date(inicio.slice(0,4), inicio.slice(4,6)-1, inicio.slice(6,8), inicio.slice(8,10), inicio.slice(10,12));
+        if (data < hoje || data >= amanha || data < agora) continue;
+
+        const esporte = normalizarEsporte(titulo, desc);
         const [time1, time2] = extrairTimes(titulo);
         const key = `${time1}-${time2}-${data.toISOString()}`;
-
         if (!eventosMap.has(key)) {
-          eventosMap.set(key, {
-            titulo, canais: [canal], data, time1, time2, desc
-          });
+          eventosMap.set(key, { titulo, canais: [canal], data, time1, time2, desc, esporte });
         } else {
-    document.getElementById('jogos-hoje').classList.remove('hidden');
           eventosMap.get(key).canais.push(canal);
         }
       }
@@ -1478,42 +1480,46 @@ async function carregarEventosModeloVisual() {
     }
   }
 
-  const eventos = Array.from(eventosMap.values()).sort((a, b) => a.data - b.data);
-  let dataAtual = "";
+  eventos = Array.from(eventosMap.values())
+    .filter(e => esporteAtual === "Outro" || e.esporte === esporteAtual)
+    .sort((a, b) => a.data - b.data)
+    .slice(0, 20); // LIMITAR A 20
+
+  if (eventos.length === 0) {
+    container.innerHTML = "<div class='text-center text-gray-400 italic mt-6'>Nenhum evento encontrado hoje.</div>";
+    return;
+  }
 
   for (const evento of eventos) {
-    const dataLabel = formatarDia(evento.data);
-    if (dataLabel !== dataAtual) {
-      const dataDiv = document.createElement("div");
-      dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
-      dataDiv.textContent = `📅 ${dataLabel}`;
-      container.appendChild(dataDiv);
-      dataAtual = dataLabel;
-    }
-
-    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1'/>` : "";
-    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1'/>` : "";
+    const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-6 mx-1'/>` : "";
+    const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-6 mx-1'/>` : "";
     const canais = [...new Set(evento.canais)].join(", ");
-    const hora = formatarHora(evento.data);
+    const aoVivo = evento.data <= agora && new Date(evento.data.getTime() + 7200000) > agora;
+    const dataFormatada = evento.data.toLocaleDateString("pt-BR", { weekday: 'short', day: '2-digit', month: '2-digit' });
+    const hora = evento.data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
     const card = document.createElement("div");
     card.className = "bg-white bg-opacity-5 rounded-lg p-3 mb-4 w-full max-w-xl mx-auto shadow";
 
     card.innerHTML = `
-      
-      <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
-        <span class="mr-2">${evento.time1}</span>${escudo1}
-        <span class="mx-2 text-xl">X</span>
-        ${escudo2}<span class="ml-2">${evento.time2}</span>
+      <div class="text-sm font-semibold uppercase text-orange-400 mb-1">${evento.esporte} - ${dataFormatada}</div>
+      <div class="flex items-center justify-center text-white text-lg font-bold mt-1">
+        <span class="mr-1">${evento.time1}</span>${escudo1}
+        <span class="mx-2">X</span>
+        ${escudo2}<span class="ml-1">${evento.time2}</span>
       </div>
-      <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
+      <div class="text-center text-sm text-white mt-1 font-medium">
+        ${hora} | ${canais}
+        <span class="ml-2 px-2 py-0.5 text-xs rounded ${aoVivo ? 'bg-red-600' : 'bg-yellow-500'} text-white'>
+          ${aoVivo ? 'AO VIVO' : 'em breve'}
+        </span>
+      </div>
     `;
 
     container.appendChild(card);
   }
 }
-
-carregarEventosModeloVisual();
 setInterval(carregarEventosModeloVisual, 60000);
+carregarEventosModeloVisual();
 </script></body>
 </html>
