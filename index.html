@@ -46,13 +46,22 @@
     </a>
 
     <!-- Formulário login cliente -->
-    <div id="loginCliente" class="mt-6 hidden">
-      <h2 class="text-lg font-semibold mb-2">Login do Cliente</h2>
-      <input id="usuario" class="w-full mb-3 px-3 py-2 rounded bg-gray-800 border border-gray-700 placeholder-gray-500" placeholder="Usuário" />
-      <input id="senha" type="password" class="w-full mb-4 px-3 py-2 rounded bg-gray-800 border border-gray-700 placeholder-gray-500" placeholder="Senha" />
+    <div id="loginCliente" class="mt-6 hidden text-left">
+      <h2 class="text-lg font-semibold mb-2 text-center">Login do Cliente</h2>
+      <label class="text-sm block mb-1">Usuário</label>
+      <input id="usuario" class="w-full mb-3 px-3 py-2 rounded bg-gray-800 border border-gray-700 placeholder-gray-500" placeholder="Digite seu usuário" />
+      <label class="text-sm block mb-1">Senha</label>
+      <input id="senha" type="password" class="w-full mb-2 px-3 py-2 rounded bg-gray-800 border border-gray-700 placeholder-gray-500" placeholder="Digite sua senha" />
+
+      <div class="flex items-center mb-4">
+        <input id="lembrar" type="checkbox" class="mr-2" />
+        <label for="lembrar" class="text-sm text-gray-300">Lembrar dados</label>
+      </div>
+
       <button onclick="validarLogin()" class="w-full bg-vibrant-orange hover:bg-orange-600 text-white py-2 rounded font-semibold transition duration-200">
         Entrar no Painel
       </button>
+
       <p id="erro" class="text-red-400 text-center text-sm mt-4 hidden">Usuário ou senha incorretos.</p>
     </div>
   </div>
@@ -68,10 +77,18 @@
     function validarLogin() {
       const usuario = document.getElementById("usuario").value.trim();
       const senha = document.getElementById("senha").value.trim();
+      const lembrar = document.getElementById("lembrar").checked;
       const erro = document.getElementById("erro");
 
       if (usuario === USUARIO_PADRAO && senha === SENHA_PADRAO) {
-        localStorage.setItem("clienteAutenticado", "true");
+        if (lembrar) {
+          const agora = Date.now();
+          const expira = agora + 12 * 60 * 60 * 1000; // 12 horas
+          localStorage.setItem("clienteAutenticado", "true");
+          localStorage.setItem("expira", expira);
+        } else {
+          sessionStorage.setItem("clienteAutenticado", "true");
+        }
         window.location.href = "cliente.html";
       } else {
         erro.classList.remove("hidden");
