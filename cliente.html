@@ -254,6 +254,24 @@
             100% { opacity: 1; }
         }
         
+        /* Em breve */
+        .soon-indicator {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .soon-indicator::before {
+            content: '⏱';
+            margin-right: 4px;
+        }
+        
         /* Notificação de atualização */
         .auto-update-notice {
             background-color: rgba(255, 107, 0, 0.1);
@@ -289,14 +307,28 @@
         
         /* Cards de eventos esportivos */
         .sport-event-card {
-            min-width: 280px;
-            max-width: 320px;
-            height: 160px;
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             padding: 1rem;
             overflow: hidden;
-            flex-shrink: 0;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+        
+        .sport-event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 107, 0, 0.5);
+        }
+        
+        .sport-event-card.live {
+            border-color: #ef4444;
+            background-color: rgba(220, 38, 38, 0.1);
+        }
+        
+        .sport-event-card.soon {
+            border-color: #eab308;
+            background-color: rgba(234, 179, 8, 0.1);
         }
         
         .sport-event-title {
@@ -395,12 +427,29 @@
             <button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Outro">Outro</button>
         </div>
         
-        <div id="jogos-container" class="flex gap-4 overflow-x-auto pb-4">
+        <div id="jogos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="loading-spinner mx-auto"></div>
         </div>
         
-        <div class="flex justify-center mt-4">
-            <button id="ver-proximo-dia" class="px-4 py-2 bg-vibrant-orange text-white rounded hover:bg-orange-600 transition">Ver Próximo Dia</button>
+        <div class="flex justify-center mt-4 gap-2">
+            <button id="ver-dia-anterior" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition hidden">
+                <svg class="h-5 w-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Dia Anterior
+            </button>
+            <button id="ver-hoje" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition hidden">
+                <svg class="h-5 w-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Ver Hoje
+            </button>
+            <button id="ver-proximo-dia" class="px-4 py-2 bg-vibrant-orange text-white rounded hover:bg-orange-600 transition">
+                Próximo Dia
+                <svg class="h-5 w-5 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
         </div>
     </section>
     
@@ -548,22 +597,45 @@
         
         // Escudos de times esportivos
         const escudos = {
+            // Times brasileiros
             "Corinthians": "https://upload.wikimedia.org/wikipedia/pt/5/5f/Corinthians_logo.png",
             "Palmeiras": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg",
             "São Paulo": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg",
             "Santos": "https://upload.wikimedia.org/wikipedia/commons/b/be/Santos_logo.svg",
             "Flamengo": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
+            "Fluminense": "https://upload.wikimedia.org/wikipedia/pt/0/05/Fluminense_FC_escudo.svg",
             "Vasco": "https://upload.wikimedia.org/wikipedia/pt/5/5b/Vasco_da_Gama_Logo.png",
+            "Botafogo": "https://upload.wikimedia.org/wikipedia/pt/9/9d/Botafogo_de_Futebol_e_Regatas_logo.svg",
             "Grêmio": "https://upload.wikimedia.org/wikipedia/pt/8/80/Gremio_logo.svg",
             "Internacional": "https://upload.wikimedia.org/wikipedia/commons/9/9a/SC_Internacional_logo.svg",
+            "Atlético-MG": "https://upload.wikimedia.org/wikipedia/pt/9/9f/Atletico_mineiro_galo_2019.png",
+            "Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/6/69/Cruzeiro_EC_logo.svg",
+            "Bahia": "https://upload.wikimedia.org/wikipedia/pt/7/7e/Esporte_Clube_Bahia_logo.svg",
+            "Vitória": "https://upload.wikimedia.org/wikipedia/pt/0/0a/Esporte_Clube_Vit%C3%B3ria.svg",
+            "Sport": "https://upload.wikimedia.org/wikipedia/pt/8/86/Sport_Club_do_Recife_logo.svg",
+            "Náutico": "https://upload.wikimedia.org/wikipedia/pt/3/3f/Clube_N%C3%A1utico_Capibaribe.png",
+            "Ceará": "https://upload.wikimedia.org/wikipedia/pt/6/6d/Cear%C3%A1_Sporting_Club_logo.png",
+            "Fortaleza": "https://upload.wikimedia.org/wikipedia/pt/1/1c/Fortaleza_Esporte_Clube_logo.png",
+            "Figueirense": "https://upload.wikimedia.org/wikipedia/pt/6/6d/Figueirense_Logo.png",
+            
+            // Times internacionais
             "PSG": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
             "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
             "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+            "Manchester United": "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
+            "Liverpool": "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
+            "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg",
+            
+            // Vôlei
+            "Sada Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/6/6e/Sada_Cruzeiro_logo.png",
+            "Minas": "https://upload.wikimedia.org/wikipedia/pt/4/4e/Minas_T%C3%AAnis_Clube_logo.png",
             "TAU": "https://upload.wikimedia.org/wikipedia/pt/f/f2/AD_Taubaté_logo.png",
-            "Fluminense": "https://upload.wikimedia.org/wikipedia/pt/0/05/Fluminense_FC_escudo.svg",
-            "Atlético-MG": "https://upload.wikimedia.org/wikipedia/pt/9/9f/Atletico_mineiro_galo_2019.png"
+            
+            // Basquete
+            "Flamengo Basquete": "https://upload.wikimedia.org/wikipedia/pt/8/81/Flamengo_escudo.png",
+            "São Paulo Basquete": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Sao_Paulo_FC_logo.svg"
         };
-        
+
         // Dias da semana abreviados
         const weekdaysShort = {
             0: 'dom', 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab'
@@ -611,6 +683,8 @@
             const currentTimeDisplay = document.getElementById('current-time-display');
             const lastUpdateDisplay = document.getElementById('last-update');
             const verProximoDiaBtn = document.getElementById('ver-proximo-dia');
+            const verHojeBtn = document.getElementById('ver-hoje');
+            const verDiaAnteriorBtn = document.getElementById('ver-dia-anterior');
             
             // Containers de canais por categoria
             const moviesChannels = document.getElementById('movies-channels');
@@ -656,6 +730,19 @@
             
             verProximoDiaBtn.addEventListener('click', () => {
                 currentDayOffset++;
+                updateDayNavigationButtons();
+                carregarEventosEsportivos();
+            });
+            
+            verHojeBtn.addEventListener('click', () => {
+                currentDayOffset = 0;
+                updateDayNavigationButtons();
+                carregarEventosEsportivos();
+            });
+            
+            verDiaAnteriorBtn.addEventListener('click', () => {
+                currentDayOffset--;
+                updateDayNavigationButtons();
                 carregarEventosEsportivos();
             });
             
@@ -667,6 +754,19 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
+            }
+            
+            function updateDayNavigationButtons() {
+                if (currentDayOffset > 0) {
+                    verDiaAnteriorBtn.classList.remove('hidden');
+                    verHojeBtn.classList.remove('hidden');
+                } else if (currentDayOffset < 0) {
+                    verDiaAnteriorBtn.classList.remove('hidden');
+                    verHojeBtn.classList.remove('hidden');
+                } else {
+                    verDiaAnteriorBtn.classList.add('hidden');
+                    verHojeBtn.classList.add('hidden');
+                }
             }
             
             function handleSearch(e) {
@@ -734,6 +834,7 @@
                 this.classList.add('bg-orange-600');
                 currentSportFilter = this.dataset.esporte;
                 currentDayOffset = 0;
+                updateDayNavigationButtons();
                 carregarEventosEsportivos();
             }
             
@@ -1319,6 +1420,7 @@
                 
                 try {
                     const eventosMap = new Map();
+                    const now = new Date();
                     
                     for (const url of sportEventsUrls) {
                         const res = await fetch(url);
@@ -1354,8 +1456,19 @@
                             
                             if (currentSportFilter !== "Todos" && esporte !== currentSportFilter) return;
                             
+                            // Verificar se o evento já terminou
+                            const fimEvento = new Date(data);
+                            fimEvento.setHours(fimEvento.getHours() + 2); // Assumindo que eventos duram 2 horas
+                            
+                            if (fimEvento < now) return; // Não mostrar eventos que já terminaram
+                            
                             const evento = {
-                                titulo, data, time1, time2, desc, esporte,
+                                titulo, 
+                                data, 
+                                time1, 
+                                time2, 
+                                desc: simplificarDescricao(desc), 
+                                esporte,
                                 canal: prog.getAttribute("channel")
                             };
                             
@@ -1377,28 +1490,52 @@
                         const dataLabel = formatarDia(evento.data);
                         if (dataLabel !== dataAtual) {
                             const dataDiv = document.createElement("div");
-                            dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6";
+                            dataDiv.className = "text-vibrant-orange font-bold text-sm mb-2 mt-6 col-span-full";
                             dataDiv.textContent = `📅 ${dataLabel}`;
                             container.appendChild(dataDiv);
                             dataAtual = dataLabel;
                         }
                         
-                        const escudo1 = escudos[evento.time1] ? `<img src='${escudos[evento.time1]}' class='h-8 mx-1' alt='${evento.time1}'/>` : "";
-                        const escudo2 = escudos[evento.time2] ? `<img src='${escudos[evento.time2]}' class='h-8 mx-1' alt='${evento.time2}'/>` : "";
+                        const escudo1 = escudos[evento.time1] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time1.substring(0, 2);
+                        const escudo2 = escudos[evento.time2] || "https://via.placeholder.com/40x40/1a1a2e/ffffff?text=" + evento.time2.substring(0, 2);
                         const canais = [...new Set(evento.canal.split(','))].join(", ");
                         const hora = formatarHora(evento.data);
                         
                         const card = document.createElement("div");
                         card.className = "sport-event-card";
                         
+                        // Verificar status do evento
+                        const now = new Date();
+                        const startTime = new Date(evento.data);
+                        const endTime = new Date(startTime);
+                        endTime.setHours(endTime.getHours() + 2); // Assumindo duração de 2 horas
+                        
+                        if (startTime <= now && endTime > now) {
+                            card.classList.add("live");
+                        } else if (startTime > now && (startTime - now) <= (5 * 60 * 60 * 1000)) {
+                            card.classList.add("soon");
+                        }
+                        
                         card.innerHTML = `
-                            <div class="text-center text-sm text-gray-400 font-semibold uppercase">${evento.desc || "Evento Esportivo"}</div>
-                            <div class="flex items-center justify-center text-white text-lg font-bold mt-2">
-                                <span class="mr-2">${evento.time1}</span>${escudo1}
-                                <span class="mx-2 text-xl">X</span>
-                                ${escudo2}<span class="ml-2">${evento.time2}</span>
+                            <div class="text-center text-xs text-orange-400 font-semibold uppercase mb-2">
+                                ${evento.desc}
                             </div>
-                            <div class="text-center text-sm text-white mt-2 font-semibold">${hora} | ${canais}</div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex flex-col items-center w-1/3">
+                                    <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1">
+                                    <span class="text-sm text-center text-white">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
+                                </div>
+                                <div class="text-xl font-bold text-white mx-2">X</div>
+                                <div class="flex flex-col items-center w-1/3">
+                                    <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1">
+                                    <span class="text-sm text-center text-white">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
+                                </div>
+                            </div>
+                            <div class="text-center text-xs text-gray-300">
+                                <span class="font-semibold">${hora}</span> | ${canais}
+                                ${startTime <= now && endTime > now ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
+                                ${startTime > now && (startTime - now) <= (5 * 60 * 60 * 1000) ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
+                            </div>
                         `;
                         
                         container.appendChild(card);
@@ -1434,14 +1571,58 @@
             function normalizarEsporte(titulo, desc) {
                 const texto = (titulo + desc).toLowerCase();
                 
-                if (texto.includes("futebol")) return "Futebol";
-                if (texto.includes("ufc") || texto.includes("mma")) return "UFC";
-                if (texto.includes("box")) return "Box";
-                if (texto.includes("volei")) return "Vôlei";
-                if (texto.includes("nba") || texto.includes("basquete")) return "NBA";
-                if (texto.includes("fórmula") || texto.includes("formula")) return "Fórmula 1";
+                // Futebol
+                if (texto.includes("futebol") || 
+                    texto.includes("brasileiro") || texto.includes("brasileirão") ||
+                    texto.includes("paulista") || texto.includes("paulistão") ||
+                    texto.includes("carioca") || texto.includes("cariocão") ||
+                    texto.includes("libertadores") || texto.includes("laliga") ||
+                    texto.includes("champions") || texto.includes("sub-20") ||
+                    texto.includes("sub-17") || texto.includes("futebol feminino")) {
+                    return "Futebol";
+                }
+                
+                // UFC
+                if (texto.includes("ufc") || texto.includes("mma") || texto.includes("ufc fight pass")) {
+                    return "UFC";
+                }
+                
+                // Box
+                if (texto.includes("box")) {
+                    return "Box";
+                }
+                
+                // Vôlei
+                if (texto.includes("volei") || texto.includes("vôlei") || 
+                    texto.includes("volei feminino") || texto.includes("volei masculino")) {
+                    return "Vôlei";
+                }
+                
+                // NBA
+                if (texto.includes("nba") || texto.includes("basquete")) {
+                    return "NBA";
+                }
                 
                 return "Outro";
+            }
+            
+            function simplificarDescricao(desc) {
+                const palavrasChave = [
+                    "campeonato brasileiro", "brasileirão", "paulista", "paulistão",
+                    "carioca", "cariocão", "libertadores", "laliga", "champions",
+                    "volei feminino", "volei masculino", "box", "ufc", "sub-20",
+                    "sub-17", "futebol feminino"
+                ];
+                
+                // Encontrar a primeira palavra-chave que aparece na descrição
+                for (const palavra of palavrasChave) {
+                    if (desc.toLowerCase().includes(palavra)) {
+                        return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+                    }
+                }
+                
+                // Se não encontrar, limitar a 4 palavras
+                return desc.split(' ').slice(0, 4).join(' ');
             }
         });
     </script>
