@@ -6,13 +6,31 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
         <script>
-  const expira = parseInt(localStorage.getItem("expira") || "0");
-  const localOk = localStorage.getItem("logado") === "true" && Date.now() < expira;
-  const sessionOk = sessionStorage.getItem("logado") === "true";
+  function verificarLogin() {
+    const agora = new Date().getTime();
+    const seisHoras = 6 * 60 * 60 * 1000;
 
-  if (!localOk && !sessionOk) {
-    window.location.href = "login.html";
+    let loginInfo = localStorage.getItem('loginMaxplay');
+    if (loginInfo) {
+      loginInfo = JSON.parse(loginInfo);
+      if (agora - loginInfo.timestamp > seisHoras) {
+        localStorage.removeItem('loginMaxplay');
+        window.location.href = 'index.html';
+        return;
+      } else {
+        return; // login válido
+      }
+    }
+
+    loginInfo = sessionStorage.getItem('loginMaxplay');
+    if (loginInfo) {
+      return; // login válido
+    }
+
+    window.location.href = 'index.html';
   }
+
+  window.onload = verificarLogin;
 </script>
 <meta content="Guia MaxPlay TV com programação atualizada dos melhores canais, filmes e séries." name="description"/>
 <meta content="MaxPlay TV - Guia" property="og:title"/>
