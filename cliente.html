@@ -597,7 +597,11 @@
     <script>
         // Configurações globais
         const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
-        const epgXmlUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml";
+        const epgSources = [
+        "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml",
+        "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/claro.xml",
+        "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/epg.xml"
+    ];
         const sportEventsUrls = [
             "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/claro.xml",
             "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/epg.xml"
@@ -1003,7 +1007,7 @@
             }
             
             function fetchEPGData() {
-                fetch(epgXmlUrl)
+                Promise.all(epgSources.map(url => fetch(url).then(r => r.text())))
                     .then(response => {
                         if (!response.ok) throw new Error('Não foi possível carregar o arquivo XML');
                         return response.text();
@@ -1508,7 +1512,7 @@
                 ];
                 
                 try {
-                    const response = await fetch(epgXmlUrl);
+                    const response = await Promise.all(epgSources.map(url => fetch(url).then(r => r.text())));
                     const xmlText = await response.text();
                     const parser = new DOMParser();
                     const xml = parser.parseFromString(xmlText, "text/xml");
