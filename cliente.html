@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -748,7 +747,7 @@
             "Band Sports": "https://logodownload.org/wp-content/uploads/2017/07/band-sports-logo.png",
             "Combate": "https://logodownload.org/wp-content/uploads/2017/07/combate-logo.png"
         };
-        
+
         // Escudos de times esportivos
         const escudos = {
             // Times brasileiros
@@ -1831,15 +1830,16 @@
                 return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
             }
             
-            // Funções auxiliares para eventos esportivos
+            // Funções auxiliares melhoradas para eventos esportivos
             function formatarDataHoraCompleta(date) {
                 const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
                 const dia = date.getDate().toString().padStart(2, '0');
                 const mes = (date.getMonth() + 1).toString().padStart(2, '0');
                 const hora = date.getHours().toString().padStart(2, '0');
+                const minuto = date.getMinutes().toString().padStart(2, '0');
                 const diaSemana = diasSemana[date.getDay()];
                 
-                return `${dia}/${mes} ${hora}h (${diaSemana})`;
+                return `${dia}/${mes} ${hora}:${minuto} (${diaSemana})`;
             }
             
             function getStatusEvento(dataEvento, agora) {
@@ -1852,11 +1852,38 @@
                 return 'upcoming';
             }
             
+            function limparTituloEvento(titulo) {
+                // Remove prefixos e sufixos comuns
+                const prefixosRemover = [
+                    'ao vivo', 'jogo', 'partida', 'campeonato', 'transmissão', 'de', 'da', 'do',
+                    'série a', 'série b', 'brasileirão', 'libertadores', 'copa', 'liga', 'playoffs',
+                    'rodada', 'temporada', 'final', 'semifinal', 'quartas', 'oitavas'
+                ];
+                
+                let tituloLimpo = titulo.toLowerCase();
+                
+                // Remove horários (padrão 00h00)
+                tituloLimpo = tituloLimpo.replace(/\d{1,2}h\d{0,2}/g, '');
+                
+                // Remove prefixos
+                prefixosRemover.forEach(prefixo => {
+                    const regex = new RegExp(`^${prefixo}\\s*[-:]\\s*|\\s*${prefixo}$`, 'gi');
+                    tituloLimpo = tituloLimpo.replace(regex, '');
+                });
+                
+                // Remove espaços extras e caracteres especiais
+                tituloLimpo = tituloLimpo.trim()
+                    .replace(/^[-–—:]+/, '')
+                    .replace(/[-–—:]+$/, '')
+                    .trim();
+                
+                return tituloLimpo;
+            }
+            
             function corrigirNomeTime(nome) {
+                if (!nome || nome.trim() === '') return "Time desconhecido";
+                
                 const correcoes = {
-                    "VT-": "",
-                    "brasil": "Brasil",
-                    "vitorias": "Vitória",
                     "fla": "Flamengo",
                     "flu": "Fluminense",
                     "bot": "Botafogo",
@@ -1864,61 +1891,118 @@
                     "pal": "Palmeiras",
                     "spfc": "São Paulo",
                     "san": "Santos",
-                    "campeonato": "",
-                    "brasileiro": "",
-                    "libertadores": ""
+                    "vas": "Vasco",
+                    "cam": "Atlético-MG",
+                    "cru": "Cruzeiro",
+                    "int": "Internacional",
+                    "gre": "Grêmio",
+                    "cap": "Athletico-PR",
+                    "for": "Fortaleza",
+                    "cea": "Ceará",
+                    "bah": "Bahia",
+                    "spt": "Sport",
+                    "brag": "Red Bull Bragantino",
+                    "goi": "Goiás",
+                    "cui": "Cuiabá",
+                    "ame": "América-MG",
+                    "cfc": "Coritiba",
+                    "cha": "Chapecoense",
+                    "fig": "Figueirense",
+                    "naut": "Náutico",
+                    "vit": "Vitória",
+                    "abc": "ABC",
+                    "bra": "Brasil",
+                    "arg": "Argentina",
+                    "fra": "França",
+                    "ale": "Alemanha",
+                    "ing": "Inglaterra",
+                    "esp": "Espanha",
+                    "ita": "Itália"
                 };
                 
-                let nomeCorrigido = nome;
-                for (const [erro, correcao] of Object.entries(correcoes)) {
-                    nomeCorrigido = nomeCorrigido.replace(new RegExp(erro, 'gi'), correcao);
+                // Verifica se o nome já está na lista de correções
+                for (const [abrev, nomeCompleto] of Object.entries(correcoes)) {
+                    if (nome.toLowerCase() === abrev.toLowerCase()) {
+                        return nomeCompleto;
+                    }
                 }
                 
-                // Capitalizar primeira letra
-                nomeCorrigido = nomeCorrigido.trim();
-                if (nomeCorrigido.length > 0) {
-                    nomeCorrigido = nomeCorrigido.charAt(0).toUpperCase() + nomeCorrigido.slice(1).toLowerCase();
-                }
-                
-                return nomeCorrigido || "Time desconhecido";
+                // Capitalizar primeira letra e manter o resto
+                nome = nome.trim();
+                return nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
             }
             
             function normalizarEsporte(titulo, desc) {
-                const texto = (titulo + desc).toLowerCase();
+                const texto = (titulo + ' ' + desc).toLowerCase();
                 
-                if (/(futebol|brasileiro|brasileirão|paulista|carioca|libertadores|laliga|champions)/i.test(texto)) {
+                // Futebol
+                if (/(futebol|brasileir[oã]|paulista|carioca|libertadores|laliga|champions|premier\s*league|serie\s*a|serie\s*b|bundesliga|calcio)/.test(texto) ||
+                    /(flamengo|corinthians|palmeiras|sao\s*paulo|santos|vasco|botafogo|fluminense|gremio|internacional)/.test(texto)) {
                     return "Futebol";
                 }
-                if (/(ufc|mma|luta|mixed martial arts)/i.test(texto)) {
+                
+                // UFC/MMA
+                if (/(ufc|mma|luta|combate|oct[oó]gono|peso\s*(leve|m[ée]dio|pesado)|(advers[áa]rios?)|(round|rounds)/.test(texto) ||
+                    /(silva|aldo|belfort|teixeira|oliveira|pantoja|poirier|mcgregor|khabib|jones|gsp|miocic)/.test(texto)) {
                     return "UFC";
                 }
-                if (/box/i.test(texto)) {
+                
+                // Boxe
+                if (/(boxe|ringue|luvas?|nocaute|knockout|ko|wbo|wbc|wba|ibf)/.test(texto)) {
                     return "Boxe";
                 }
-                if (/(volei|vôlei)/i.test(texto)) {
+                
+                // Vôlei
+                if (/(volei|v[ôo]lei|superliga|levantador|ponteiro|central|libero)/.test(texto) ||
+                    /(sada\s*cruzeiro|minas|taubat[eé]|sesi|funvic|campinas)/.test(texto)) {
                     return "Vôlei";
                 }
-                if (/(nba|basquete)/i.test(texto)) {
+                
+                // Basquete
+                if (/(basquete|nba|quadra|arremesso|enterrada|bandeja|t[êi]s\s*pontos)/.test(texto) ||
+                    /(lakers|warriors|bulls|celtics|nets|heat|bucks)/.test(texto)) {
                     return "Basquete";
                 }
+                
                 return "Outros Esportes";
             }
             
-            function extrairTimes(titulo) {
-                // Primeiro tenta encontrar padrão com "x" ou "vs"
-                const regexPadrao = /(.+?)\s+(?:vs|x|×)\s+(.+)/i;
-                const matchPadrao = titulo.match(regexPadrao);
-                if (matchPadrao) {
-                    return [corrigirNomeTime(matchPadrao[1]), corrigirNomeTime(matchPadrao[2])];
+            function extrairTimes(tituloOriginal) {
+                let titulo = limparTituloEvento(tituloOriginal);
+                
+                // Padrões de correspondência
+                const padroes = [
+                    // Padrão: Time1 vs Time2
+                    /(.+?)\s+(?:vs|versus|x|×)\s+(.+)/i,
+                    // Padrão: Time1 - Time2
+                    /(.+?)\s*[-–—]\s*(.+)/i,
+                    // Padrão: Time1 x Time2
+                    /(.+?)\s*x\s*(.+)/i,
+                    // Padrão: Time1 contra Time2
+                    /(.+?)\s+contra\s+(.+)/i
+                ];
+                
+                // Tenta cada padrão até encontrar uma correspondência
+                for (const padrao of padroes) {
+                    const match = titulo.match(padrao);
+                    if (match && match[1] && match[2]) {
+                        return [
+                            corrigirNomeTime(match[1].trim()),
+                            corrigirNomeTime(match[2].trim())
+                        ];
+                    }
                 }
                 
-                // Se não encontrar, tenta dividir por hífen
-                const partes = titulo.split(/[-–]/);
+                // Se nenhum padrão for encontrado, tenta dividir por espaços
+                const partes = titulo.split(/\s+/);
                 if (partes.length >= 2) {
-                    return [corrigirNomeTime(partes[0]), corrigirNomeTime(partes[1])];
+                    return [
+                        corrigirNomeTime(partes.slice(0, partes.length/2).join(' ')),
+                        corrigirNomeTime(partes.slice(partes.length/2).join(' '))
+                    ];
                 }
                 
-                // Se não conseguir, retorna o título original
+                // Se tudo falhar, retorna o título original como time1
                 return [corrigirNomeTime(titulo), ""];
             }
             
@@ -2064,19 +2148,36 @@
                         const xml = new DOMParser().parseFromString(xmlText, "text/xml");
                         
                         Array.from(xml.getElementsByTagName("programme")).forEach(prog => {
-                            const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+                            const tituloOriginal = prog.getElementsByTagName("title")[0]?.textContent || "";
                             const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
                             const canal = prog.getAttribute("channel") || "";
                             
-                            // Verifica se é um canal esportivo
-                            const isCanalEsportivo = canaisEsportivos.some(c => canal.includes(c));
+                            // Verifica se é um canal esportivo permitido
+                            const isCanalEsportivo = canaisEsportivos.some(c => canal.toLowerCase().includes(c.toLowerCase()));
                             if (!isCanalEsportivo) return;
                             
-                            // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
-                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga|luta|ufc|mma)/i.test(titulo + desc);
-                            if (!isEventoEsportivo) return;
+                            // Limpa e prepara o título para análise
+                            const tituloLimpo = limparTituloEvento(tituloOriginal);
                             
+                            // Verifica se parece ser um evento esportivo real
+                            const [time1, time2] = extrairTimes(tituloLimpo);
+                            const temDoisTimesValidos = time1 && time2 && 
+                                time1 !== "Time desconhecido" && 
+                                time2 !== "Time desconhecido" &&
+                                time1.toLowerCase() !== time2.toLowerCase();
+                            
+                            if (!temDoisTimesValidos) return;
+                            
+                            // Determina o tipo de esporte
+                            const esporte = normalizarEsporte(tituloLimpo, desc);
+                            
+                            // Filtra pelo esporte selecionado
+                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
+                            
+                            // Obtém a data do evento
                             const inicio = prog.getAttribute("start");
+                            if (!inicio || inicio.length < 12) return;
+                            
                             const data = new Date(
                                 parseInt(inicio.slice(0, 4)),
                                 parseInt(inicio.slice(4, 6)) - 1,
@@ -2085,7 +2186,10 @@
                                 parseInt(inicio.slice(10, 12))
                             );
                             
-                            // Ajustar para o dia selecionado
+                            // Ajusta para o fuso horário de Brasília (UTC-3)
+                            data.setHours(data.getHours() - 3);
+                            
+                            // Filtra pelo dia selecionado
                             const hoje = new Date();
                             hoje.setDate(hoje.getDate() + currentDayOffset);
                             hoje.setHours(0, 0, 0, 0);
@@ -2095,33 +2199,12 @@
                             
                             if (data < hoje || data >= amanha) return;
                             
-                            // Determina o esporte
-                            const esporte = normalizarEsporte(titulo, desc);
-                            
-                            // Filtra por esporte selecionado
-                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
-                            
-                            // Extrai os participantes
-                            let [time1, time2] = extrairTimes(titulo);
-                            
-                            // Para UFC/MMA, ajusta os nomes
-                            if (esporte === "UFC") {
-                                // Tenta extrair os nomes dos lutadores
-                                const lutadores = titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
-                                                 titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
-                                                 [null, time1, time2];
-                                time1 = lutadores[1] || time1;
-                                time2 = lutadores[2] || time2;
-                            }
-                            
-                            if (!time1 || !time2) return;
-                            
                             // Determina o status do evento
                             const status = getStatusEvento(data, now);
                             
                             // Cria o objeto do evento
                             const evento = {
-                                titulo, 
+                                titulo: tituloOriginal,
                                 data, 
                                 time1, 
                                 time2, 
@@ -2131,7 +2214,10 @@
                             };
                             
                             // Adiciona ao mapa (evita duplicatas)
-                            eventosMap.set(`${time1}-${time2}-${data.getTime()}`, evento);
+                            const chaveUnica = `${time1}-${time2}-${data.getTime()}`;
+                            if (!eventosMap.has(chaveUnica)) {
+                                eventosMap.set(chaveUnica, evento);
+                            }
                         });
                     }
                     
@@ -2140,14 +2226,19 @@
                         .sort((a, b) => a.data - b.data);
                     
                     if (eventos.length === 0) {
-                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento encontrado para ${currentSportFilter}</p>`;
+                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento de ${currentSportFilter} encontrado</p>`;
                         return;
                     }
                     
                     // Agrupa por data
                     const eventosPorData = {};
                     eventos.forEach(evento => {
-                        const dataKey = evento.data.toLocaleDateString('pt-BR');
+                        const dataKey = evento.data.toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                        
                         if (!eventosPorData[dataKey]) {
                             eventosPorData[dataKey] = [];
                         }
@@ -2172,7 +2263,7 @@
                     }
                 } catch (error) {
                     console.error("Erro ao carregar eventos esportivos:", error);
-                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos</p>`;
+                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos: ${error.message}</p>`;
                 }
             }
         });
