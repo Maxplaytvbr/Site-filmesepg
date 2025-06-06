@@ -6,16 +6,20 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
         <script>
-  // Remove login temporário ao recarregar a página
-  sessionStorage.removeItem("logado");
-  sessionStorage.removeItem("usuario");
-
   const expira = parseInt(localStorage.getItem("expira") || "0");
   const localOk = localStorage.getItem("logado") === "true" && Date.now() < expira;
   const sessionOk = sessionStorage.getItem("logado") === "true";
 
   if (!localOk && !sessionOk) {
+    // Se não estiver logado nem local nem por sessão, redireciona
     window.location.href = "login.html";
+  }
+
+  // ⚠️ IMPORTANTE: só limpa o sessionStorage depois da verificação!
+  // Isso garante que o usuário temporário possa acessar 1x até recarregar
+  if (!localOk) {
+    sessionStorage.removeItem("logado");
+    sessionStorage.removeItem("usuario");
   }
 </script>
 <meta content="Guia MaxPlay TV com programação atualizada dos melhores canais, filmes e séries." name="description"/>
