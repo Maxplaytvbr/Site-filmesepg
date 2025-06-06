@@ -1925,7 +1925,6 @@
             }
         });
     </script>
-
 <div class="modal" id="trailer-modal" style="display: none;">
 <div class="modal-content" style="max-width: 800px;">
 <div class="modal-header bg-gray-800 flex justify-between items-center p-4">
@@ -1935,7 +1934,6 @@
 <div class="modal-body p-4 bg-black text-center" id="trailer-modal-body"></div>
 </div>
 </div>
-
 <script>
 const apiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
 
@@ -1973,6 +1971,55 @@ function fecharTrailer() {
     const body = document.getElementById("trailer-modal-body");
     body.innerHTML = "";
     modal.style.display = "none";
+}
+</script>
+
+<script>
+function criarCardFilme(filme) {
+    const card = document.createElement("div");
+    card.className = "movie-card";
+
+    const img = document.createElement("img");
+    img.src = filme.poster ? filme.poster : "https://via.placeholder.com/200x300?text=SEM+CARTAZ";
+    img.alt = filme.title;
+    img.className = "rounded mb-2 w-full object-cover";
+
+    const title = document.createElement("h3");
+    title.className = "text-sm font-semibold";
+    title.textContent = filme.title;
+
+    const rating = document.createElement("p");
+    rating.className = "text-xs text-gray-400 mb-2";
+    rating.textContent = filme.rating ? `Classificação: ${filme.rating}` : "";
+
+    const trailerBtn = document.createElement("button");
+    trailerBtn.textContent = "Ver Trailer";
+    trailerBtn.className = "bg-vibrant-orange text-white px-3 py-1 rounded text-sm mt-2";
+    trailerBtn.onclick = () => buscarTrailer(filme.title);
+
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(rating);
+    card.appendChild(trailerBtn);
+
+    return card;
+}
+
+// Exemplo de como chamar:
+async function carregarFilmes() {
+    const filmesContainer = document.getElementById("filmes");
+    filmesContainer.innerHTML = "";
+
+    const filmes = [
+        { title: "Duna Parte 2", poster: "", rating: "12" },
+        { title: "Homem-Aranha: Através do Aranhaverso", poster: "", rating: "10" },
+        { title: "Godzilla e Kong: O Novo Império", poster: "", rating: "12" }
+    ];
+
+    for (const filme of filmes) {
+        const card = criarCardFilme(filme);
+        filmesContainer.appendChild(card);
+    }
 }
 </script>
 </body>
