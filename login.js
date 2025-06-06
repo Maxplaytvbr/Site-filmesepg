@@ -1,6 +1,6 @@
 const validUsers = {
-  "maxplay": "maxplay!",
-  "apoli": "apoli!"
+  "maxplay": "maxplay",
+  "apoli": "apoli"
 };
 
 const form = document.getElementById("loginForm");
@@ -17,7 +17,7 @@ form.addEventListener("submit", function (e) {
       localStorage.setItem("logado", "true");
       localStorage.setItem("expira", (Date.now() + 6 * 60 * 60 * 1000).toString()); // 6 horas
     }
-    window.location.href = "index.html";
+    window.location.href = "cliente.html";
   } else {
     msg.classList.remove("hidden");
   }
@@ -26,7 +26,7 @@ form.addEventListener("submit", function (e) {
 if (localStorage.getItem("logado") === "true") {
   const expira = parseInt(localStorage.getItem("expira") || "0");
   if (Date.now() < expira) {
-    window.location.href = "index.html";
+    window.location.href = "cliente.html";
   } else {
     localStorage.clear();
   }
