@@ -674,7 +674,16 @@
 </div>
 </div>
 <!-- JavaScript -->
-<script>
+<script>function tituloValido(titulo) {
+        if (!titulo) return false;
+        const blacklist = ["ao vivo", "reprise", "vt", "jogo", "futebol", "especial", "sportcenter", "apresentação", "entrevista", "esporte", "programa", "filme", "show"];
+        const limpar = titulo.toLowerCase().replace(/[\-_:]/g, " ").trim();
+        if (blacklist.some(term => limpar.includes(term))) return false;
+        const partes = limpar.split(/vs|x/i).map(p => p.trim()).filter(p => p.length > 2);
+        return partes.length === 2;
+    }
+
+
         // Configurações globais
         const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
         const epgXmlUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml";
