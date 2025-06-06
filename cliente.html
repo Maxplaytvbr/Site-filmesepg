@@ -5,6 +5,15 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
+        <script>
+  const expira = parseInt(localStorage.getItem("expira") || "0");
+  const localOk = localStorage.getItem("logado") === "true" && Date.now() < expira;
+  const sessionOk = sessionStorage.getItem("logado") === "true";
+
+  if (!localOk && !sessionOk) {
+    window.location.href = "login.html";
+  }
+</script>
 <meta content="Guia MaxPlay TV com programação atualizada dos melhores canais, filmes e séries." name="description"/>
 <meta content="MaxPlay TV - Guia" property="og:title"/>
 <meta content="Veja a programação de hoje com filmes, séries e canais ao vivo." property="og:description"/>
