@@ -1,6 +1,6 @@
 const validUsers = {
-  "maxplay": "maxplay!",
-  "apoli": "apoli!"
+  "maxplay": "maxplay",
+  "apoli": "apoli"
 };
 
 const form = document.getElementById("loginForm");
