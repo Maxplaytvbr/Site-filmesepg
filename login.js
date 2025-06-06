@@ -13,25 +13,23 @@ form.addEventListener("submit", function (e) {
   const lembrar = document.getElementById("lembrar").checked;
 
   if (validUsers[user] === pass) {
-    const storage = lembrar ? localStorage : sessionStorage;
-    const tempo = lembrar ? Date.now() + 6 * 60 * 60 * 1000 : null;
-
-    storage.setItem("logado", "true");
-    if (tempo) localStorage.setItem("expira", tempo.toString());
-
+    if (lembrar) {
+      localStorage.setItem("logado", "true");
+      localStorage.setItem("expira", (Date.now() + 6 * 60 * 60 * 1000).toString()); // 6h
+    }
+    // redireciona SEM salvar nada se não lembrar
     window.location.href = "cliente.html";
   } else {
     msg.classList.remove("hidden");
   }
 });
 
+// se estiver salvo no localStorage, valida
 if (localStorage.getItem("logado") === "true") {
-  const expira = parseInt(localStorage.getItem("expira"));
+  const expira = parseInt(localStorage.getItem("expira") || "0");
   if (Date.now() < expira) {
     window.location.href = "cliente.html";
   } else {
     localStorage.clear();
   }
-} else if (sessionStorage.getItem("logado") === "true") {
-  window.location.href = "cliente.html";
 }
