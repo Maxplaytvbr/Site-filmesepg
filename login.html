@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - MaxPlay</title>
+  <link rel="icon" href="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-blue': '#0f172a',
+            'vibrant-orange': '#ff6b00',
+            'favorite-yellow': '#facc15',
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-dark-blue text-white font-sans min-h-screen flex items-center justify-center">
+  <div class="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div class="text-center mb-6">
+      <img src="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" class="h-16 mx-auto mb-4" alt="Logo MaxPlay">
+      <h1 class="text-2xl font-bold">Painel de Acesso</h1>
+      <p class="text-sm text-gray-400">Guia MaxPlay TV</p>
+    </div>
+    <form id="loginForm" class="space-y-4">
+      <input type="text" id="usuario" placeholder="Usuário" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-vibrant-orange" />
+      <input type="password" id="senha" placeholder="Senha" required class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-vibrant-orange" />
+      <label class="flex items-center text-sm text-gray-300">
+        <input type="checkbox" id="lembrar" class="mr-2"> Lembrar meus dados (6h)
+      </label>
+      <button type="submit" class="w-full bg-vibrant-orange text-white py-2 rounded hover:bg-orange-500 transition">Entrar</button>
+    </form>
+    <p id="mensagem" class="text-red-500 mt-4 text-sm text-center hidden">Usuário ou senha incorretos.</p>
+  </div>
+  <script src="login.js"></script>
+</body>
+</html>
