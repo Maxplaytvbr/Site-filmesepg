@@ -202,6 +202,62 @@
             color: #ff6b00;
         }
         
+        /* Modal de trailer */
+        .trailer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+        }
+        
+        .trailer-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            margin: 5% auto;
+            background-color: #1a2234;
+            border-radius: 8px;
+            padding: 20px;
+            animation: modalFadeIn 0.3s;
+        }
+        
+        .trailer-iframe-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .trailer-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .trailer-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 101;
+        }
+        
+        .trailer-not-found {
+            padding: 40px;
+            text-align: center;
+            color: #fff;
+        }
+        
         /* Scrollbar personalizada */
         ::-webkit-scrollbar {
             width: 8px;
@@ -411,6 +467,15 @@
             text-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
         }
         
+        /* Canal logo em cards de filmes */
+        .channel-logo {
+            height: 20px;
+            width: auto;
+            object-fit: contain;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
         /* Responsividade */
         @media (max-width: 640px) {
             .filters-container {
@@ -432,6 +497,10 @@
             .sport-event-card {
                 min-width: 240px;
             }
+            
+            .movie-card {
+                min-width: 150px;
+            }
         }
     </style>
 </head>
@@ -442,6 +511,18 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
     </button>
+
+    <!-- Modal de Trailer -->
+    <div id="trailer-modal" class="trailer-modal">
+        <div class="trailer-modal-content">
+            <span class="trailer-close">&times;</span>
+            <div id="trailer-container" class="trailer-iframe-container">
+                <div id="trailer-not-found" class="trailer-not-found hidden">
+                    <p>Trailer não encontrado para este filme.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <header class="mb-6">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
@@ -816,6 +897,10 @@
             const verHojeBtn = document.getElementById('ver-hoje');
             const verDiaAnteriorBtn = document.getElementById('ver-dia-anterior');
             const backToTopButton = document.getElementById('back-to-top');
+            const trailerModal = document.getElementById('trailer-modal');
+            const trailerClose = document.querySelector('.trailer-close');
+            const trailerContainer = document.getElementById('trailer-container');
+            const trailerNotFound = document.getElementById('trailer-not-found');
             
             // Containers de canais por categoria
             const moviesChannels = document.getElementById('movies-channels');
@@ -835,6 +920,7 @@
             let currentSportFilter = 'Futebol';
             let currentDayOffset = 0;
             let favoriteChannels = JSON.parse(localStorage.getItem('favoriteChannels')) || {};
+            const trailerCache = JSON.parse(localStorage.getItem('trailerCache')) || {};
             
             // Inicialização
             updateCurrentTime();
@@ -851,6 +937,29 @@
             
             backToTopButton.addEventListener('click', () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // Configurar modal de trailer
+            trailerClose.addEventListener('click', () => {
+                trailerModal.style.display = 'none';
+                // Remove o iframe quando o modal é fechado
+                const iframe = trailerContainer.querySelector('iframe');
+                if (iframe) {
+                    iframe.remove();
+                }
+                trailerNotFound.classList.add('hidden');
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === trailerModal) {
+                    trailerModal.style.display = 'none';
+                    // Remove o iframe quando o modal é fechado
+                    const iframe = trailerContainer.querySelector('iframe');
+                    if (iframe) {
+                        iframe.remove();
+                    }
+                    trailerNotFound.classList.add('hidden');
+                }
             });
             
             fetchEPGData();
@@ -1544,6 +1653,77 @@
                 modal.style.display = 'block';
             }
             
+            // Função para buscar trailer de um filme
+            async function buscarTrailer(tituloFilme) {
+                // Verificar cache primeiro
+                if (trailerCache[tituloFilme]) {
+                    mostrarTrailer(trailerCache[tituloFilme]);
+                    return;
+                }
+                
+                try {
+                    // Primeiro busca o ID do filme
+                    const searchResponse = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(tituloFilme)}&language=pt-BR`);
+                    const searchData = await searchResponse.json();
+                    
+                    if (searchData.results && searchData.results.length > 0) {
+                        const filmeId = searchData.results[0].id;
+                        
+                        // Agora busca os vídeos do filme
+                        const videosResponse = await fetch(`https://api.themoviedb.org/3/movie/${filmeId}/videos?api_key=${tmdbApiKey}&language=pt-BR`);
+                        const videosData = await videosResponse.json();
+                        
+                        if (videosData.results && videosData.results.length > 0) {
+                            // Encontrar o primeiro trailer do YouTube
+                            const trailer = videosData.results.find(video => 
+                                video.site === 'YouTube' && video.type === 'Trailer'
+                            );
+                            
+                            if (trailer) {
+                                const trailerUrl = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+                                // Salva no cache
+                                trailerCache[tituloFilme] = trailerUrl;
+                                localStorage.setItem('trailerCache', JSON.stringify(trailerCache));
+                                mostrarTrailer(trailerUrl);
+                            } else {
+                                mostrarTrailerNaoEncontrado();
+                            }
+                        } else {
+                            mostrarTrailerNaoEncontrado();
+                        }
+                    } else {
+                        mostrarTrailerNaoEncontrado();
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar trailer:', error);
+                    mostrarTrailerNaoEncontrado();
+                }
+            }
+            
+            function mostrarTrailer(trailerUrl) {
+                trailerNotFound.classList.add('hidden');
+                
+                // Cria o iframe
+                const iframe = document.createElement('iframe');
+                iframe.className = 'trailer-iframe';
+                iframe.src = trailerUrl;
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('allow', 'autoplay');
+                
+                // Limpa o container e adiciona o iframe
+                trailerContainer.innerHTML = '';
+                trailerContainer.appendChild(iframe);
+                
+                // Mostra o modal
+                trailerModal.style.display = 'block';
+            }
+            
+            function mostrarTrailerNaoEncontrado() {
+                trailerContainer.innerHTML = '';
+                trailerNotFound.classList.remove('hidden');
+                trailerModal.style.display = 'block';
+            }
+            
             async function carregarFilmes() {
                 const container = document.getElementById("filmes");
                 container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
@@ -1600,16 +1780,36 @@
                             const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
                             const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
                             
+                            // Obter logo do canal
+                            let channelLogo = '';
+                            for (const [key, url] of Object.entries(channelLogos)) {
+                                if (channel.includes(key)) {
+                                    channelLogo = `<img src="${url}" alt="${key}" class="channel-logo">`;
+                                    break;
+                                }
+                            }
+                            
                             const card = document.createElement("div");
                             card.className = "movie-card";
                             card.innerHTML = `
-                                <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded">
+                                <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded" loading="lazy">
                                 <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
-                                <p class="text-xs text-gray-300">Canal: ${channel}</p>
+                                <div class="flex items-center mt-1">
+                                    ${channelLogo}
+                                    <p class="text-xs text-gray-300">${channel}</p>
+                                </div>
                                 <p class="text-xs text-gray-300">Horário: ${horario}</p>
                                 <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
+                                <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
+                                    Ver Trailer
+                                </button>
                             `;
                             container.appendChild(card);
+                            
+                            // Adicionar evento de clique ao botão de trailer
+                            card.querySelector('.ver-trailer-btn').addEventListener('click', (e) => {
+                                buscarTrailer(e.target.dataset.titulo);
+                            });
                             
                             break;
                         }
