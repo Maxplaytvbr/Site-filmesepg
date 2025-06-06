@@ -2050,6 +2050,31 @@
             }
             
             async function carregarEventosEsportivos() {
+
+    // FILTRO CORRETIVO APLICADO A EVENTOS ESPORTIVOS
+    function tituloValido(titulo) {
+        if (!titulo) return false;
+
+        // Elimina termos inválidos
+        const blacklist = ["Sportcenter", "Ao Vivo", "AO VIVO", "Reprise", "Especial", "VT", "BR", "BS", "Jogo", "Sócia", "Show", "Promo", "HD"];
+        for (const termo of blacklist) {
+            if (titulo.toLowerCase().includes(termo.toLowerCase())) {
+                return false;
+            }
+        }
+
+        // Limpa e normaliza
+        const limpo = titulo
+            .replace(/(VT|Reprise|Especial|HD|AO VIVO|BR|BS|FEM|Jogo|Sócia|Show|Promo)/gi, "")
+            .replace(/[^a-zA-Z0-9À-úà-ú\sxXvsVS]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        const partes = limpo.split(/vs|x/i).map(p => p.trim());
+        return (partes.length === 2 && partes[0].length > 2 && partes[1].length > 2);
+    }
+
+
                 const container = document.getElementById("jogos-container");
                 container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
                 
