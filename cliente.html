@@ -628,6 +628,7 @@
 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="morning">Manhã</button>
 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="afternoon">Tarde</button>
 <button class="filter-btn px-3 py-1.5 rounded-md bg-gray-800 text-sm font-medium" data-time="evening">Noite</button>
+
 </div>
 </div>
 <div class="hidden" id="channels-container">
@@ -2050,97 +2051,168 @@
             }
             
             async function carregarEventosEsportivos() {
-    const container = document.getElementById("jogos-container");
-    container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-
-    const diaSelecionado = new Date();
-    diaSelecionado.setDate(diaSelecionado.getDate() + currentDayOffset);
-
-    const eventosValidos = [];
-
-    for (const url of sportEventsUrls) {
-        try {
-            const response = await fetch(url);
-            const xmlText = await response.text();
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
-
-            for (const prog of programmes) {
-                const canal = prog.getAttribute("channel") || "";
-                const inicio = parseEPGDate(prog.getAttribute("start"));
-                const fim = parseEPGDate(prog.getAttribute("stop"));
-
-                const hora = inicio.getHours();
-                if (
-                    inicio.toDateString() !== diaSelecionado.toDateString() ||
-                    hora < 5 || hora > 23
-                ) continue;
-
-                const tituloOriginal = prog.getElementsByTagName("title")[0]?.textContent || "";
-                let titulo = tituloOriginal;
-
-                const padroesInvalidos = [/vt/gi, /reprise/gi, /br/gi, /fem/gi, /ao vivo/gi, /especial/gi, /show/gi, /promo/gi, /hd/gi, /sócia/gi];
-                padroesInvalidos.forEach(pat => titulo = titulo.replace(pat, ""));
-                titulo = titulo.replace(/[^a-zA-Z0-9À-úçÇ xX]/g, "").trim();
-
-                const delimitador = titulo.includes(" x ") ? " x " :
-                                    titulo.includes(" X ") ? " X " :
-                                    titulo.includes(" vs ") ? " vs " :
-                                    titulo.includes(" VS ") ? " VS " : null;
-                if (!delimitador) continue;
-
-                const [timeA, timeB] = titulo.split(delimitador).map(t => t.trim());
-
-                if (
-                    !timeA || !timeB || 
-                    timeA.length < 3 || timeB.length < 3 ||
-                    ["ao vivo", "reprise", "sportcenter"].includes(timeA.toLowerCase()) ||
-                    ["ao vivo", "reprise", "sportcenter"].includes(timeB.toLowerCase())
-                ) continue;
-
-                const esporte = normalizarEsporte(timeA, timeB);
-                if (!esporte) continue;
-
-                const canalValido = canaisEsportivos.find(c => canal.toLowerCase().includes(c.toLowerCase()));
-                if (!canalValido) continue;
-
-                eventosValidos.push({
-                    esporte,
-                    hora: inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-                    timeA,
-                    timeB,
-                    canal: canalValido,
-                    inicio
-                });
+                const container = document.getElementById("jogos-container");
+                container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+                
+                try {
+                    const eventosMap = new Map();
+                    const now = new Date();
+                    
+                    for (const url of sportEventsUrls) {
+                        const res = await fetch(url);
+                        const xmlText = await res.text();
+                        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+                        
+                        Array.from(xml.getElementsByTagName("programme")).forEach(prog => {
+                            const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+                            const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
+                            const canal = prog.getAttribute("channel") || "";
+                            
+                            // Verifica se é um canal esportivo
+                            const isCanalEsportivo = canaisEsportivos.some(c => canal.includes(c));
+                            if (!isCanalEsportivo) return;
+                            
+                            // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
+                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga|luta|ufc|mma)/i.test(titulo + desc);
+                            if (!isEventoEsportivo) return;
+                            
+                            const inicio = prog.getAttribute("start");
+                            const data = new Date(
+                                parseInt(inicio.slice(0, 4)),
+                                parseInt(inicio.slice(4, 6)) - 1,
+                                parseInt(inicio.slice(6, 8)),
+                                parseInt(inicio.slice(8, 10)),
+                                parseInt(inicio.slice(10, 12))
+                            );
+                            
+                            // Ajustar para o dia selecionado
+                            const hoje = new Date();
+                            hoje.setDate(hoje.getDate() + currentDayOffset);
+                            hoje.setHours(0, 0, 0, 0);
+                            
+                            const amanha = new Date(hoje);
+                            amanha.setDate(amanha.getDate() + 1);
+                            
+                            if (data < hoje || data >= amanha) return;
+                            
+                            // Determina o esporte
+                            const esporte = normalizarEsporte(titulo, desc);
+                            
+                            // Filtra por esporte selecionado
+                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
+                            
+                            // Extrai os participantes
+                            let [time1, time2] = extrairTimes(titulo);
+                            
+                            // Para UFC/MMA, ajusta os nomes
+                            if (esporte === "UFC") {
+                                // Tenta extrair os nomes dos lutadores
+                                const lutadores = titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 [null, time1, time2];
+                                time1 = lutadores[1] || time1;
+                                time2 = lutadores[2] || time2;
+                            }
+                            
+                            if (!time1 || !time2) return;
+                            
+                            // Determina o status do evento
+                            const status = getStatusEvento(data, now);
+                            
+                            // Cria o objeto do evento
+                            const evento = {
+                                titulo, 
+                                data, 
+                                time1, 
+                                time2, 
+                                esporte,
+                                canal,
+                                status
+                            };
+                            
+                            // Adiciona ao mapa (evita duplicatas)
+                            eventosMap.set(`${time1}-${time2}-${data.getTime()}`, evento);
+                        });
+                    }
+                    
+                    container.innerHTML = "";
+                    const eventos = Array.from(eventosMap.values())
+                        .sort((a, b) => a.data - b.data);
+                    
+                    if (eventos.length === 0) {
+                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento encontrado para ${currentSportFilter}</p>`;
+                        return;
+                    }
+                    
+                    // Agrupa por data
+                    const eventosPorData = {};
+                    eventos.forEach(evento => {
+                        const dataKey = evento.data.toLocaleDateString('pt-BR');
+                        if (!eventosPorData[dataKey]) {
+                            eventosPorData[dataKey] = [];
+                        }
+                        eventosPorData[dataKey].push(evento);
+                    });
+                    
+                    // Adiciona cabeçalho de data e os cards
+                    for (const [dataStr, eventosDaData] of Object.entries(eventosPorData)) {
+                        const dataHeader = document.createElement("div");
+                        dataHeader.className = "text-vibrant-orange font-bold text-sm mb-2 mt-4 w-full";
+                        dataHeader.textContent = `📅 ${dataStr}`;
+                        container.appendChild(dataHeader);
+                        
+                        eventosDaData.forEach(evento => {
+                            // Decide qual tipo de card usar baseado no esporte
+                            if (evento.esporte === "UFC") {
+                                container.appendChild(criarCardEventoMMA(evento));
+                            } else {
+                                container.appendChild(criarCardEvento(evento));
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar eventos esportivos:", error);
+                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos</p>`;
+                }
             }
-        } catch (e) {
-            console.error("Erro ao carregar XML de eventos:", e);
-        }
-    }
+        });
+    </script>
+<div class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden items-center justify-center" id="trailerModal">
+<div class="bg-gray-900 p-4 rounded-lg shadow-lg relative w-full max-w-3xl">
+<button class="absolute top-2 right-2 text-white text-2xl" onclick="fecharModal()">×</button>
+<div class="aspect-video w-full" id="trailerContainer">
+<!-- Iframe será inserido aqui -->
+</div>
+</div>
+</div>
+<script>
+const apiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
+const cache = {};
 
-    container.innerHTML = "";
+async function buscarTrailer(titulo) {
+  if (cache[titulo]) {
+    exibirModal(cache[titulo]);
+    return;
+  }
 
-    const filtrados = eventosValidos
-        .filter(ev => ev.esporte === currentSportFilter)
-        .sort((a, b) => a.inicio - b.inicio);
+  try {
+    const busca = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}`);
+    const dadosBusca = await busca.json();
+    const filme = dadosBusca.results[0];
+    if (!filme) return alert("Trailer não encontrado");
 
-    if (filtrados.length === 0) {
-        container.innerHTML = "<p class='text-gray-400 italic'>Nenhum evento encontrado.</p>";
-        return;
-    }
+    const videos = await fetch(`https://api.themoviedb.org/3/movie/${filme.id}/videos?api_key=${apiKey}`);
+    const dadosVideos = await videos.json();
+    const trailer = dadosVideos.results.find(v => v.type === "Trailer" && v.site === "YouTube");
+    if (!trailer) return alert("Trailer não encontrado");
 
-    for (const ev of filtrados) {
-        const card = document.createElement("div");
-        card.className = "sport-event-card";
-
-        card.innerHTML = `
-            <div class="text-sm font-semibold text-orange-400">${ev.esporte} - ${ev.hora}</div>
-            <div class="text-lg font-bold my-2">${ev.timeA} <span class="text-vibrant-orange">X</span> ${ev.timeB}</div>
-            <div class="text-sm text-gray-300">Transmissão: ${ev.canal}</div>
-        `;
-        container.appendChild(card);
-    }
+    const videoURL = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+    cache[titulo] = videoURL;
+    exibirModal(videoURL);
+  } catch (error) {
+    console.error("Erro ao buscar trailer:", error);
+    alert("Trailer não encontrado");
+  }
 }
 
 function exibirModal(videoURL) {
