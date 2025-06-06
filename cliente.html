@@ -5,33 +5,6 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MaxPlay TV - Guia</title>
-        <script>
-  function verificarLogin() {
-    const agora = new Date().getTime();
-    const seisHoras = 6 * 60 * 60 * 1000;
-
-    let loginInfo = localStorage.getItem('loginMaxplay');
-    if (loginInfo) {
-      loginInfo = JSON.parse(loginInfo);
-      if (agora - loginInfo.timestamp > seisHoras) {
-        localStorage.removeItem('loginMaxplay');
-        window.location.href = 'index.html';
-        return;
-      } else {
-        return; // login válido
-      }
-    }
-
-    loginInfo = sessionStorage.getItem('loginMaxplay');
-    if (loginInfo) {
-      return; // login válido
-    }
-
-    window.location.href = 'index.html';
-  }
-
-  window.onload = verificarLogin;
-</script>
 <meta content="Guia MaxPlay TV com programação atualizada dos melhores canais, filmes e séries." name="description"/>
 <meta content="MaxPlay TV - Guia" property="og:title"/>
 <meta content="Veja a programação de hoje com filmes, séries e canais ao vivo." property="og:description"/>
@@ -2254,17 +2227,6 @@ function fecharModal() {
   document.getElementById("trailerModal").classList.remove("flex");
   document.getElementById("trailerContainer").innerHTML = "";
 }
-        <!-- BOTÃO DE SAIR -->
-<button onclick="logout()" class="fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 z-50">
-  Sair
-</button>
-
-<script>
-function logout() {
-  localStorage.clear();
-  window.location.href = "login.html";
-}
-</script>
 </script>
 </body>
 </html>
