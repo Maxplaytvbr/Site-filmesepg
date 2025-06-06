@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel MaxPlay</title>
+
+  <script>
+    const expira = parseInt(localStorage.getItem("expira") || "0");
+    const localOk = localStorage.getItem("logado") === "true" && Date.now() < expira;
+
+    if (!localOk) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #0f172a;
+      color: white;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-center px-4">
+
+  <img src="https://i.postimg.cc/BvbCr0jH/IMG-6850.png" class="h-20 mb-6" alt="Logo MaxPlay">
+
+  <h1 class="text-3xl font-bold mb-3">🎉 Bem-vindo ao Painel MaxPlay!</h1>
+
+  <p class="text-lg text-orange-400 font-semibold mb-4">
+    A melhor experiência em IPTV ao seu alcance. Aproveite os melhores filmes, séries e canais ao vivo!
+  </p>
+
+  <p class="text-gray-400 mb-8">Painel protegido por acesso seguro com login.</p>
+
+  <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+    Sair
+  </button>
+
+  <script>
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
