@@ -1383,51 +1383,71 @@
                 modal.style.display = 'block';
             }
             
-            // Função para buscar trailer de um filme
+            // Função para buscar trailer de um filme com hierarquia de idiomas
             async function buscarTrailer(tituloFilme) {
-                // Verificar cache primeiro
-                if (trailerCache[tituloFilme]) {
-                    mostrarTrailer(trailerCache[tituloFilme]);
-                    return;
+                // Normaliza título e verifica no cache primeiro
+                const tituloNormalizado = normalizarTitulo(tituloFilme);
+                if (trailerCache[tituloNormalizado]) {
+                    return mostrarTrailer(trailerCache[tituloNormalizado]);
                 }
-                
+
                 try {
-                    // Primeiro busca o ID do filme
-                    const searchResponse = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(tituloFilme)}&language=pt-BR`);
-                    const searchData = await searchResponse.json();
+                    // Passo 1: Busca o filme na API
+                    const urlBusca = `https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(tituloNormalizado)}`;
                     
-                    if (searchData.results && searchData.results.length > 0) {
-                        const filmeId = searchData.results[0].id;
-                        
-                        // Agora busca os vídeos do filme
-                        const videosResponse = await fetch(`https://api.themoviedb.org/3/movie/${filmeId}/videos?api_key=${tmdbApiKey}&language=pt-BR`);
-                        const videosData = await videosResponse.json();
-                        
-                        if (videosData.results && videosData.results.length > 0) {
-                            // Encontrar o primeiro trailer do YouTube
-                            const trailer = videosData.results.find(video => 
-                                video.site === 'YouTube' && video.type === 'Trailer'
-                            );
-                            
-                            if (trailer) {
-                                const trailerUrl = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-                                // Salva no cache
-                                trailerCache[tituloFilme] = trailerUrl;
-                                localStorage.setItem('trailerCache', JSON.stringify(trailerCache));
-                                mostrarTrailer(trailerUrl);
-                            } else {
-                                mostrarTrailerNaoEncontrado();
-                            }
-                        } else {
-                            mostrarTrailerNaoEncontrado();
-                        }
+                    const respostaBusca = await fetch(urlBusca);
+                    const dadosBusca = await respostaBusca.json();
+
+                    if (!dadosBusca.results?.length) {
+                        console.log('Nenhum resultado encontrado para:', tituloNormalizado);
+                        return mostrarTrailerNaoEncontrado();
+                    }
+
+                    // Passo 2: Obtém o ID do primeiro resultado
+                    const idFilme = dadosBusca.results[0].id;
+
+                    // Hierarquia de busca de trailers:
+                    // 1. Primeiro tenta em português brasileiro (pt-BR)
+                    // 2. Se não encontrar, tenta versões legendadas (pt)
+                    // 3. Por último, qualquer versão disponível
+                    const linguagensParaTentar = ['pt-BR', 'pt', 'en'];
+                    let trailerEncontrado = null;
+
+                    for (const lingua of linguagensParaTentar) {
+                        const urlVideos = `https://api.themoviedb.org/3/movie/${idFilme}/videos?api_key=${tmdbApiKey}&language=${lingua}`;
+                        const respostaVideos = await fetch(urlVideos);
+                        const dadosVideos = await respostaVideos.json();
+
+                        // Procura por trailers do YouTube
+                        trailerEncontrado = dadosVideos.results.find(video => 
+                            video.site === 'YouTube' && video.type === 'Trailer'
+                        );
+
+                        if (trailerEncontrado) break; // Se encontrou, sai do loop
+                    }
+
+                    if (trailerEncontrado) {
+                        const urlTrailer = `https://www.youtube.com/embed/${trailerEncontrado.key}?autoplay=1`;
+                        // Armazena no cache
+                        trailerCache[tituloNormalizado] = urlTrailer;
+                        localStorage.setItem('trailerCache', JSON.stringify(trailerCache));
+                        mostrarTrailer(urlTrailer);
                     } else {
                         mostrarTrailerNaoEncontrado();
                     }
-                } catch (error) {
-                    console.error('Erro ao buscar trailer:', error);
+                } catch (erro) {
+                    console.error('Erro ao buscar trailer:', erro);
                     mostrarTrailerNaoEncontrado();
                 }
+            }
+            
+            // Função auxiliar para normalizar títulos de filmes
+            function normalizarTitulo(titulo) {
+                return titulo
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
+                    .replace(/[^\w\s]/gi, '') // Remove caracteres especiais
+                    .toLowerCase()
+                    .trim();
             }
             
             function mostrarTrailer(trailerUrl) {
@@ -1590,48 +1610,5 @@
 </div>
 </div>
 </div>
-<script>
-const apiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
-const cache = {};
-
-async function buscarTrailer(titulo) {
-  if (cache[titulo]) {
-    exibirModal(cache[titulo]);
-    return;
-  }
-
-  try {
-    const busca = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}`);
-    const dadosBusca = await busca.json();
-    const filme = dadosBusca.results[0];
-    if (!filme) return alert("Trailer não encontrado");
-
-    const videos = await fetch(`https://api.themoviedb.org/3/movie/${filme.id}/videos?api_key=${apiKey}`);
-    const dadosVideos = await videos.json();
-    const trailer = dadosVideos.results.find(v => v.type === "Trailer" && v.site === "YouTube");
-    if (!trailer) return alert("Trailer não encontrado");
-
-    const videoURL = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-    cache[titulo] = videoURL;
-    exibirModal(videoURL);
-  } catch (error) {
-    console.error("Erro ao buscar trailer:", error);
-    alert("Trailer não encontrado");
-  }
-}
-
-function exibirModal(videoURL) {
-  document.getElementById("trailerContainer").innerHTML =
-    `<iframe class="w-full h-full" src="${videoURL}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-  document.getElementById("trailerModal").classList.remove("hidden");
-  document.getElementById("trailerModal").classList.add("flex");
-}
-
-function fecharModal() {
-  document.getElementById("trailerModal").classList.add("hidden");
-  document.getElementById("trailerModal").classList.remove("flex");
-  document.getElementById("trailerContainer").innerHTML = "";
-}
-</script>
 </body>
 </html>
