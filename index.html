@@ -1056,16 +1056,16 @@
                 this.classList.add('active');
                 
                 const filter = this.dataset.filter;
-                const sections = document.querySelector('#channels-container').querySelectorAll('section');
-                const channelCards = document.querySelectorAll('.channel-card');
+                const sections = document.querySelectorAll('#channels-container > section');
                 
                 if (filter === 'all') {
+                    // Mostrar todas as seções e todos os canais
                     sections.forEach(section => section.classList.remove('hidden'));
-                    channelCards.forEach(card => card.classList.remove('hidden'));
+                    document.querySelectorAll('.channel-card').forEach(card => card.classList.remove('hidden'));
                 } else if (filter === 'favorites') {
-                    // Filtro de favoritos
+                    // Filtro de favoritos - mostrar apenas canais favoritados em todas as seções
                     sections.forEach(section => section.classList.remove('hidden'));
-                    channelCards.forEach(card => {
+                    document.querySelectorAll('.channel-card').forEach(card => {
                         const channelId = card.dataset.channelId;
                         if (favoriteChannels[channelId]) {
                             card.classList.remove('hidden');
@@ -1074,11 +1074,11 @@
                         }
                     });
                 } else {
+                    // Filtro por categoria específica
                     sections.forEach(section => {
-                        if (section.id === 'filmes-destaque') {
+                        if (section.id === `${filter}-section`) {
                             section.classList.remove('hidden');
-                        } else if (section.id === `${filter}-section`) {
-                            section.classList.remove('hidden');
+                            section.querySelectorAll('.channel-card').forEach(card => card.classList.remove('hidden'));
                         } else {
                             section.classList.add('hidden');
                         }
@@ -1232,10 +1232,20 @@
                     { id: 'other-section', container: otherChannels }
                 ];
                 
+                // Verificar qual filtro está ativo
+                const activeFilter = document.querySelector('.filter-btn:not([data-time]).active')?.dataset.filter;
+                
                 sections.forEach(section => {
-                    const visibleChannels = section.container.querySelectorAll('.channel-card:not(.hidden)');
                     const sectionElement = document.getElementById(section.id);
                     
+                    // Se não for o filtro "all" ou "favorites", e não for a seção do filtro ativo, ocultar
+                    if (activeFilter && activeFilter !== 'all' && activeFilter !== 'favorites' && section.id !== `${activeFilter}-section`) {
+                        sectionElement.classList.add('hidden');
+                        return;
+                    }
+                    
+                    // Para filtro "all" ou "favorites", verificar se há canais visíveis
+                    const visibleChannels = section.container.querySelectorAll('.channel-card:not(.hidden)');
                     if (visibleChannels.length === 0) {
                         sectionElement.classList.add('hidden');
                     } else {
@@ -1340,28 +1350,17 @@
                 
                 let categoryFound = false;
                 for (const [category, channelList] of Object.entries(channelCategories)) {
-                    if (channelList.some(name => channelName.includes(name))) {
+                    if (channelList.some(name => channelName.toLowerCase().includes(name.toLowerCase()))) {
                         categoryFound = true;
-                        switch (category) {
-                            case 'movies':
-                                moviesChannels.appendChild(channelCard);
-                                channelCard.dataset.category = 'movies';
-                                break;
-                            case 'documentary':
-                                documentaryChannels.appendChild(channelCard);
-                                channelCard.dataset.category = 'documentary';
-                                break;
-                            case 'kids':
-                                kidsChannels.appendChild(channelCard);
-                                channelCard.dataset.category = 'kids';
-                                break;
-                            case 'sports':
-                                sportsChannels.appendChild(channelCard);
-                                channelCard.dataset.category = 'sports';
-                                break;
-                            default:
-                                otherChannels.appendChild(channelCard);
-                                channelCard.dataset.category = 'other';
+                        const categorySectionId = `${category}-section`;
+                        const categoryContainer = document.getElementById(`${category}-channels`);
+                        
+                        if (categoryContainer) {
+                            categoryContainer.appendChild(channelCard);
+                            channelCard.dataset.category = category;
+                        } else {
+                            otherChannels.appendChild(channelCard);
+                            channelCard.dataset.category = 'other';
                         }
                         break;
                     }
