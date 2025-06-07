@@ -1491,78 +1491,100 @@
                     
                     const programas = Array.from(xml.getElementsByTagName("programme"));
                     const hoje = new Date();
-                    const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
+                    
+                    // Criar array com as datas dos próximos 3 dias (hoje + 3 dias)
+                    const diasParaBuscar = [];
+                    for (let i = 0; i < 4; i++) { // 0 = hoje, 1 = amanhã, etc.
+                        const data = new Date(hoje);
+                        data.setDate(hoje.getDate() + i);
+                        diasParaBuscar.push(data.toISOString().split("T")[0].replace(/-/g, ""));
+                    }
                     
                     const titulosUnicos = new Set();
                     container.innerHTML = "";
                     
-                    for (const canal of canais) {
-                        const programasDoCanal = programas.filter(p => {
-                            const channel = p.getAttribute("channel") || "";
-                            const start = p.getAttribute("start") || "";
-                            
-                            const startTime = new Date(
-                                parseInt(start.slice(0, 4)),
-                                parseInt(start.slice(4, 6)) - 1,
-                                parseInt(start.slice(6, 8)),
-                                parseInt(start.slice(8, 10)),
-                                parseInt(start.slice(10, 12))
-                            );
-                            
-                            return channel.toLowerCase().includes(canal.toLowerCase()) &&
-                                   start.startsWith(hojeStr) &&
-                                   startTime >= new Date();
-                        });
-                        
-                        for (const filme of programasDoCanal) {
-                            const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
-                            const titleClean = titleRaw.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-                            
-                            if (titulosUnicos.has(titleClean)) continue;
-                            
-                            const img = await buscarImagemFilme(titleRaw);
-                            if (img.includes("via.placeholder.com")) continue;
-                            
-                            titulosUnicos.add(titleClean);
-                            
-                            const channel = filme.getAttribute("channel");
-                            const start = filme.getAttribute("start");
-                            const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
-                            const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
-                            
-                            // Obter logo do canal
-                            let channelLogo = '';
-                            for (const [key, url] of Object.entries(channelLogos)) {
-                                if (channel.includes(key)) {
-                                    channelLogo = `<img src="${url}" alt="${key}" class="channel-logo">`;
-                                    break;
-                                }
-                            }
-                            
-                            const card = document.createElement("div");
-                            card.className = "movie-card";
-                            card.innerHTML = `
-                                <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded" loading="lazy">
-                                <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
-                                <div class="flex items-center mt-1">
-                                    ${channelLogo}
-                                    <p class="text-xs text-gray-300">${channel}</p>
-                                </div>
-                                <p class="text-xs text-gray-300">Horário: ${horario}</p>
-                                <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
-                                <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
-                                    Ver Trailer
-                                </button>
-                            `;
-                            container.appendChild(card);
-                            
-                            // Adicionar evento de clique ao botão de trailer
-                            card.querySelector('.ver-trailer-btn').addEventListener('click', (e) => {
-                                buscarTrailer(e.target.dataset.titulo);
+                    // Buscar filmes em cada um dos dias
+                    for (const dia of diasParaBuscar) {
+                        for (const canal of canais) {
+                            const programasDoCanal = programas.filter(p => {
+                                const channel = p.getAttribute("channel") || "";
+                                const start = p.getAttribute("start") || "";
+                                
+                                const startTime = new Date(
+                                    parseInt(start.slice(0, 4)),
+                                    parseInt(start.slice(4, 6)) - 1,
+                                    parseInt(start.slice(6, 8)),
+                                    parseInt(start.slice(8, 10)),
+                                    parseInt(start.slice(10, 12))
+                                );
+                                
+                                return channel.toLowerCase().includes(canal.toLowerCase()) &&
+                                       start.startsWith(dia) &&
+                                       startTime >= new Date(); // Só mostra programas futuros
                             });
                             
-                            break;
+                            for (const filme of programasDoCanal) {
+                                const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
+                                const titleClean = normalizarTitulo(titleRaw);
+                                
+                                if (titulosUnicos.has(titleClean)) continue;
+                                
+                                const img = await buscarImagemFilme(titleRaw);
+                                if (img.includes("via.placeholder.com")) continue;
+                                
+                                titulosUnicos.add(titleClean);
+                                
+                                const channel = filme.getAttribute("channel");
+                                const start = filme.getAttribute("start");
+                                const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
+                                const dataExibicao = new Date(
+                                    parseInt(start.slice(0, 4)),
+                                    parseInt(start.slice(4, 6)) - 1,
+                                    parseInt(start.slice(6, 8))
+                                );
+                                const diaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][dataExibicao.getDay()];
+                                const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
+                                
+                                // Obter logo do canal
+                                let channelLogo = '';
+                                for (const [key, url] of Object.entries(channelLogos)) {
+                                    if (channel.includes(key)) {
+                                        channelLogo = `<img src="${url}" alt="${key}" class="channel-logo">`;
+                                        break;
+                                    }
+                                }
+                                
+                                const card = document.createElement("div");
+                                card.className = "movie-card";
+                                card.innerHTML = `
+                                    <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded" loading="lazy">
+                                    <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <div class="flex items-center">
+                                            ${channelLogo}
+                                            <p class="text-xs text-gray-300">${channel}</p>
+                                        </div>
+                                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">${diaSemana}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-300">Horário: ${horario}</p>
+                                    <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
+                                    <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
+                                        Ver Trailer
+                                    </button>
+                                `;
+                                container.appendChild(card);
+                                
+                                // Adicionar evento de clique ao botão de trailer
+                                card.querySelector('.ver-trailer-btn').addEventListener('click', (e) => {
+                                    buscarTrailer(e.target.dataset.titulo);
+                                });
+                                
+                                // Limitar a quantidade de filmes exibidos para não sobrecarregar
+                                if (titulosUnicos.size >= 30) break; // Limite de 30 filmes
+                            }
+                            if (titulosUnicos.size >= 30) break; // Limite de 30 filmes
                         }
+                        if (titulosUnicos.size >= 30) break; // Limite de 30 filmes
                     }
                 } catch (error) {
                     console.error("Erro ao carregar filmes:", error);
