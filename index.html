@@ -1743,7 +1743,7 @@
                             
                             return channel.toLowerCase().includes(canal.toLowerCase()) &&
                                    start.startsWith(hojeStr) &&
-                                   true  // Removido filtro de horário: agora pega todos os filmes do dia;
+                                   startTime >= new Date();
                         });
                         
                         for (const filme of programasDoCanal) {
