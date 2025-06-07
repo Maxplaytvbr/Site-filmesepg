@@ -13,71 +13,7 @@
 <!-- Fontes -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com">
-function carregarFilmes() {
-    const filmesContainer = document.getElementById("filmes");
-    filmesContainer.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-    const diasSemana = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-    const filmesUnicos = new Set();
-    const filmes = [];
-    const hoje = new Date();
-
-    fetch("https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml")
-        .then(response => response.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
-
-            for (let diaOffset = 0; diaOffset <= 3; diaOffset++) {
-                const data = new Date();
-                data.setDate(hoje.getDate() + diaOffset);
-                const inicioDia = new Date(data.setHours(0, 0, 0, 0));
-                const fimDia = new Date(data.setHours(23, 59, 59, 999));
-
-                programmes.forEach(programme => {
-                    const canal = programme.getAttribute("channel");
-                    const titulo = programme.getElementsByTagName("title")[0]?.textContent.trim() || "";
-                    const inicio = parseEPGDate(programme.getAttribute("start"));
-                    const desc = programme.getElementsByTagName("desc")[0]?.textContent || "";
-
-                    if (!titulo || inicio < inicioDia || inicio > fimDia) return;
-
-                    const nomeNormalizado = titulo.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, "");
-
-                    if (filmesUnicos.has(nomeNormalizado)) return;
-
-                    if (titulo.length < 2 || titulo.includes("(") || titulo.includes("...")) return;
-
-                    if (!desc.toLowerCase().includes("filme") && !desc.toLowerCase().includes("cinema") && !desc.toLowerCase().includes("movie")) return;
-
-                    filmesUnicos.add(nomeNormalizado);
-                    filmes.push({ titulo, inicio, canal });
-                });
-            }
-
-            filmes.sort((a, b) => a.inicio - b.inicio);
-            filmesContainer.innerHTML = "";
-
-            filmes.forEach(filme => {
-                const horario = filme.inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-                const diaSemana = diasSemana[filme.inicio.getDay()];
-
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `
-                    <h3 class="text-sm font-semibold mb-1">${filme.titulo}</h3>
-                    <p class="text-xs text-gray-300">${horario} | ${diaSemana}</p>
-                `;
-                filmesContainer.appendChild(card);
-            });
-        })
-        .catch(() => {
-            filmesContainer.innerHTML = "<p class='text-red-500 text-sm'>Erro ao carregar filmes.</p>";
-        });
-}
-
-</script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
         tailwind.config = {
             theme: {
@@ -93,71 +29,7 @@ function carregarFilmes() {
                 }
             }
         }
-    
-function carregarFilmes() {
-    const filmesContainer = document.getElementById("filmes");
-    filmesContainer.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-    const diasSemana = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-    const filmesUnicos = new Set();
-    const filmes = [];
-    const hoje = new Date();
-
-    fetch("https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml")
-        .then(response => response.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
-
-            for (let diaOffset = 0; diaOffset <= 3; diaOffset++) {
-                const data = new Date();
-                data.setDate(hoje.getDate() + diaOffset);
-                const inicioDia = new Date(data.setHours(0, 0, 0, 0));
-                const fimDia = new Date(data.setHours(23, 59, 59, 999));
-
-                programmes.forEach(programme => {
-                    const canal = programme.getAttribute("channel");
-                    const titulo = programme.getElementsByTagName("title")[0]?.textContent.trim() || "";
-                    const inicio = parseEPGDate(programme.getAttribute("start"));
-                    const desc = programme.getElementsByTagName("desc")[0]?.textContent || "";
-
-                    if (!titulo || inicio < inicioDia || inicio > fimDia) return;
-
-                    const nomeNormalizado = titulo.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, "");
-
-                    if (filmesUnicos.has(nomeNormalizado)) return;
-
-                    if (titulo.length < 2 || titulo.includes("(") || titulo.includes("...")) return;
-
-                    if (!desc.toLowerCase().includes("filme") && !desc.toLowerCase().includes("cinema") && !desc.toLowerCase().includes("movie")) return;
-
-                    filmesUnicos.add(nomeNormalizado);
-                    filmes.push({ titulo, inicio, canal });
-                });
-            }
-
-            filmes.sort((a, b) => a.inicio - b.inicio);
-            filmesContainer.innerHTML = "";
-
-            filmes.forEach(filme => {
-                const horario = filme.inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-                const diaSemana = diasSemana[filme.inicio.getDay()];
-
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `
-                    <h3 class="text-sm font-semibold mb-1">${filme.titulo}</h3>
-                    <p class="text-xs text-gray-300">${horario} | ${diaSemana}</p>
-                `;
-                filmesContainer.appendChild(card);
-            });
-        })
-        .catch(() => {
-            filmesContainer.innerHTML = "<p class='text-red-500 text-sm'>Erro ao carregar filmes.</p>";
-        });
-}
-
-</script>
+    </script>
 <style>
         body {
             background-color: #0f172a;
@@ -692,7 +564,7 @@ function carregarFilmes() {
 <section class="px-4 py-6 text-white" id="filmes-destaque">
 
 <h2 class="text-2xl font-bold mb-1 text-orange-500">🎬 Destaques do Dia</h2>
-<p class="text-sm text-gray-300 mb-4">Acompanhe aqui os filmes que ainda vão passar nos principais canais.</p>
+<p class="text-sm text-gray-300 mb-4">Acompanhe aqui os filmes que ainda vão passar hoje nos principais canais.</p>
 
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes">
 <div class="loading-spinner mx-auto"></div>
@@ -2306,71 +2178,7 @@ function carregarFilmes() {
                 }
             }
         });
-    
-function carregarFilmes() {
-    const filmesContainer = document.getElementById("filmes");
-    filmesContainer.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-    const diasSemana = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-    const filmesUnicos = new Set();
-    const filmes = [];
-    const hoje = new Date();
-
-    fetch("https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml")
-        .then(response => response.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
-
-            for (let diaOffset = 0; diaOffset <= 3; diaOffset++) {
-                const data = new Date();
-                data.setDate(hoje.getDate() + diaOffset);
-                const inicioDia = new Date(data.setHours(0, 0, 0, 0));
-                const fimDia = new Date(data.setHours(23, 59, 59, 999));
-
-                programmes.forEach(programme => {
-                    const canal = programme.getAttribute("channel");
-                    const titulo = programme.getElementsByTagName("title")[0]?.textContent.trim() || "";
-                    const inicio = parseEPGDate(programme.getAttribute("start"));
-                    const desc = programme.getElementsByTagName("desc")[0]?.textContent || "";
-
-                    if (!titulo || inicio < inicioDia || inicio > fimDia) return;
-
-                    const nomeNormalizado = titulo.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, "");
-
-                    if (filmesUnicos.has(nomeNormalizado)) return;
-
-                    if (titulo.length < 2 || titulo.includes("(") || titulo.includes("...")) return;
-
-                    if (!desc.toLowerCase().includes("filme") && !desc.toLowerCase().includes("cinema") && !desc.toLowerCase().includes("movie")) return;
-
-                    filmesUnicos.add(nomeNormalizado);
-                    filmes.push({ titulo, inicio, canal });
-                });
-            }
-
-            filmes.sort((a, b) => a.inicio - b.inicio);
-            filmesContainer.innerHTML = "";
-
-            filmes.forEach(filme => {
-                const horario = filme.inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-                const diaSemana = diasSemana[filme.inicio.getDay()];
-
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `
-                    <h3 class="text-sm font-semibold mb-1">${filme.titulo}</h3>
-                    <p class="text-xs text-gray-300">${horario} | ${diaSemana}</p>
-                `;
-                filmesContainer.appendChild(card);
-            });
-        })
-        .catch(() => {
-            filmesContainer.innerHTML = "<p class='text-red-500 text-sm'>Erro ao carregar filmes.</p>";
-        });
-}
-
-</script>
+    </script>
 <div class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden items-center justify-center" id="trailerModal">
 <div class="bg-gray-900 p-4 rounded-lg shadow-lg relative w-full max-w-3xl">
 <button class="absolute top-2 right-2 text-white text-2xl" onclick="fecharModal()">×</button>
@@ -2421,70 +2229,6 @@ function fecharModal() {
   document.getElementById("trailerModal").classList.remove("flex");
   document.getElementById("trailerContainer").innerHTML = "";
 }
-
-function carregarFilmes() {
-    const filmesContainer = document.getElementById("filmes");
-    filmesContainer.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-    const diasSemana = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-    const filmesUnicos = new Set();
-    const filmes = [];
-    const hoje = new Date();
-
-    fetch("https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml")
-        .then(response => response.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
-
-            for (let diaOffset = 0; diaOffset <= 3; diaOffset++) {
-                const data = new Date();
-                data.setDate(hoje.getDate() + diaOffset);
-                const inicioDia = new Date(data.setHours(0, 0, 0, 0));
-                const fimDia = new Date(data.setHours(23, 59, 59, 999));
-
-                programmes.forEach(programme => {
-                    const canal = programme.getAttribute("channel");
-                    const titulo = programme.getElementsByTagName("title")[0]?.textContent.trim() || "";
-                    const inicio = parseEPGDate(programme.getAttribute("start"));
-                    const desc = programme.getElementsByTagName("desc")[0]?.textContent || "";
-
-                    if (!titulo || inicio < inicioDia || inicio > fimDia) return;
-
-                    const nomeNormalizado = titulo.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/gi, "");
-
-                    if (filmesUnicos.has(nomeNormalizado)) return;
-
-                    if (titulo.length < 2 || titulo.includes("(") || titulo.includes("...")) return;
-
-                    if (!desc.toLowerCase().includes("filme") && !desc.toLowerCase().includes("cinema") && !desc.toLowerCase().includes("movie")) return;
-
-                    filmesUnicos.add(nomeNormalizado);
-                    filmes.push({ titulo, inicio, canal });
-                });
-            }
-
-            filmes.sort((a, b) => a.inicio - b.inicio);
-            filmesContainer.innerHTML = "";
-
-            filmes.forEach(filme => {
-                const horario = filme.inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-                const diaSemana = diasSemana[filme.inicio.getDay()];
-
-                const card = document.createElement("div");
-                card.className = "movie-card";
-                card.innerHTML = `
-                    <h3 class="text-sm font-semibold mb-1">${filme.titulo}</h3>
-                    <p class="text-xs text-gray-300">${horario} | ${diaSemana}</p>
-                `;
-                filmesContainer.appendChild(card);
-            });
-        })
-        .catch(() => {
-            filmesContainer.innerHTML = "<p class='text-red-500 text-sm'>Erro ao carregar filmes.</p>";
-        });
-}
-
 </script>
 </body>
 </html>
