@@ -1705,102 +1705,44 @@
             }
             
             async function carregarFilmes() {
-    const url = epgXmlUrl;
-    const container = document.getElementById("filmes");
-    container.innerHTML = "";
-    const loading = document.createElement("div");
-    loading.className = "loading-spinner mx-auto";
-    container.appendChild(loading);
-
-    const canais = [
-        "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix",
-        "HBO Family", "HBO", "HBO2", "Cinemax", "Telecine Touch", 
-        "Paramount", "Telecine Fun", "Space", "TNT", "TNT Séries", "Warner", 
-        "Sony", "Universal TV", "AMC", "FX", "AXN", "Star Channel", 
-        "Star Premium", "Canal Brasil", "Sony Movies"
-    ];
-
-    const limiteFilmes = 30;
-    let totalFilmes = 0;
-    const titulosUnicos = new Set();
-
-    fetch(url)
-        .then(res => res.text())
-        .then(xml => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xml, "text/xml");
-            const programas = Array.from(xmlDoc.getElementsByTagName("programme"));
-            const agora = new Date();
-
-            const filmesHoje = programas.filter(p => {
-                const canal = p.getAttribute("channel") || "";
-                const inicio = parseEPGDate(p.getAttribute("start"));
-                const fim = parseEPGDate(p.getAttribute("stop"));
-                const titulo = p.getElementsByTagName("title")[0]?.textContent || "";
-
-                if (!titulo || titulosUnicos.has(titulo)) return false;
-                if (inicio < agora || fim < agora) return false;
-
-                return canais.some(nome => canal.toLowerCase().includes(nome.toLowerCase()));
-            });
-
-            filmesHoje.sort((a, b) => {
-                const aInicio = parseEPGDate(a.getAttribute("start"));
-                const bInicio = parseEPGDate(b.getAttribute("start"));
-                return aInicio - bInicio;
-            });
-
-            const promises = filmesHoje.map(p => {
-                const titulo = p.getElementsByTagName("title")[0]?.textContent || "";
-                const inicio = parseEPGDate(p.getAttribute("start"));
-
-                return fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`)
-                    .then(r => r.json())
-                    .then(tmdb => {
-                        const info = tmdb.results?.[0];
-                        if (!info || !info.poster_path || !info.id) return;
-
-                        return fetch(`https://api.themoviedb.org/3/movie/${info.id}/videos?api_key=${tmdbApiKey}`)
-                            .then(r2 => r2.json())
-                            .then(videoData => {
-                                const trailer = videoData.results?.find(v => v.type === "Trailer" && v.site === "YouTube");
-                                if (!trailer) return;
-
-                                if (totalFilmes >= limiteFilmes) return;
-
-                                const card = document.createElement("div");
-                                card.className = "movie-card";
-                                card.innerHTML = \`
-                                    <img src="https://image.tmdb.org/t/p/w500\${info.poster_path}" alt="\${titulo}" class="rounded mb-2">
-                                    <h3 class="text-sm font-semibold">\${titulo}</h3>
-                                    <p class="text-xs text-gray-400">\${inicio.toLocaleTimeString("pt-BR", {hour: '2-digit', minute: '2-digit'})}</p>
-                                \`;
-                                card.onclick = () => {
-                                    const iframe = document.createElement("iframe");
-                                    iframe.className = "trailer-iframe";
-                                    iframe.src = \`https://www.youtube.com/embed/\${trailer.key}\`;
-                                    const container = document.getElementById("trailer-container");
-                                    container.innerHTML = "";
-                                    container.appendChild(iframe);
-                                    document.getElementById("trailer-modal").style.display = "block";
-                                };
-
-                                container.appendChild(card);
-                                titulosUnicos.add(titulo);
-                                totalFilmes++;
-                            });
-                    });
-            });
-
-            Promise.all(promises).then(() => {
-                loading.remove();
-            });
-        })
-        .catch(err => {
-            console.error("Erro ao carregar filmes:", err);
-            container.innerHTML = "<p class='text-center text-sm text-gray-400'>Erro ao carregar filmes.</p>";
-        });
-});
+                const container = document.getElementById("filmes");
+                container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+                
+                const canais = [
+                    "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix", "HBO Family", "HBO", "HBO2",
+                    "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
+                ];
+                
+                try {
+                    const response = await fetch(epgXmlUrl);
+                    const xmlText = await response.text();
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(xmlText, "text/xml");
+                    
+                    const programas = Array.from(xml.getElementsByTagName("programme"));
+                    const hoje = new Date();
+                    const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
+                    
+                    const titulosUnicos = new Set();
+                    container.innerHTML = "";
+                    
+                    for (const canal of canais) {
+                        const programasDoCanal = programas.filter(p => {
+                            const channel = p.getAttribute("channel") || "";
+                            const start = p.getAttribute("start") || "";
+                            
+                            const startTime = new Date(
+                                parseInt(start.slice(0, 4)),
+                                parseInt(start.slice(4, 6)) - 1,
+                                parseInt(start.slice(6, 8)),
+                                parseInt(start.slice(8, 10)),
+                                parseInt(start.slice(10, 12))
+                            );
+                            
+                            return channel.toLowerCase().includes(canal.toLowerCase()) &&
+                                   start.startsWith(hojeStr) &&
+                                   startTime >= new Date();
+                        });
                         
                         for (const filme of programasDoCanal) {
                             const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
