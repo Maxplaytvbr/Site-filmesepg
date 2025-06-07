@@ -1704,8 +1704,7 @@
                 trailerModal.style.display = 'block';
             }
             
-            async 
-function carregarFilmes() {
+            async function carregarFilmes() {
     const url = epgXmlUrl;
     const container = document.getElementById("filmes");
     container.innerHTML = "";
@@ -1721,85 +1720,145 @@ function carregarFilmes() {
         "Star Premium", "Canal Brasil", "Sony Movies"
     ];
 
-    const maxFilmes = 30;
+    const limiteFilmes = 30;
     let totalFilmes = 0;
-    const filmesAdicionados = new Set();
+    const titulosUnicos = new Set();
 
     fetch(url)
-        .then(response => response.text())
-        .then(xmlText => {
+        .then(res => res.text())
+        .then(xml => {
             const parser = new DOMParser();
-            const xml = parser.parseFromString(xmlText, "text/xml");
-            const programas = xml.getElementsByTagName("programme");
+            const xmlDoc = parser.parseFromString(xml, "text/xml");
+            const programas = Array.from(xmlDoc.getElementsByTagName("programme"));
             const agora = new Date();
 
-            const filmesFiltrados = [];
+            const filmesHoje = programas.filter(p => {
+                const canal = p.getAttribute("channel") || "";
+                const inicio = parseEPGDate(p.getAttribute("start"));
+                const fim = parseEPGDate(p.getAttribute("stop"));
+                const titulo = p.getElementsByTagName("title")[0]?.textContent || "";
 
-            for (let i = 0; i < programas.length; i++) {
-                const prog = programas[i];
-                const canal = prog.getAttribute("channel");
-                const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-                const inicio = parseEPGDate(prog.getAttribute("start"));
-                const fim = parseEPGDate(prog.getAttribute("stop"));
+                if (!titulo || titulosUnicos.has(titulo)) return false;
+                if (inicio < agora || fim < agora) return false;
 
-                if (!titulo || filmesAdicionados.has(titulo)) continue;
-                if (inicio < agora || fim < agora) continue;
+                return canais.some(nome => canal.toLowerCase().includes(nome.toLowerCase()));
+            });
 
-                if (canais.some(c => canal.toLowerCase().includes(c.toLowerCase()))) {
-                    filmesFiltrados.push({ titulo, inicio, canal });
-                }
-            }
+            filmesHoje.sort((a, b) => {
+                const aInicio = parseEPGDate(a.getAttribute("start"));
+                const bInicio = parseEPGDate(b.getAttribute("start"));
+                return aInicio - bInicio;
+            });
 
-            // Ordenar por horário de exibição
-            filmesFiltrados.sort((a, b) => a.inicio - b.inicio);
+            const promises = filmesHoje.map(p => {
+                const titulo = p.getElementsByTagName("title")[0]?.textContent || "";
+                const inicio = parseEPGDate(p.getAttribute("start"));
 
-            const promises = filmesFiltrados.map(info => {
-                return fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(info.titulo)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const filme = data.results?.[0];
-                        if (!filme || !filme.poster_path || filme.media_type === "tv") return;
+                return fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(titulo)}`)
+                    .then(r => r.json())
+                    .then(tmdb => {
+                        const info = tmdb.results?.[0];
+                        if (!info || !info.poster_path || !info.id) return;
 
-                        // Buscar trailer
-                        return fetch(`https://api.themoviedb.org/3/movie/${filme.id}/videos?api_key=${tmdbApiKey}`)
-                            .then(r => r.json())
-                            .then(videos => {
-                                const trailer = videos.results?.find(v => v.type === "Trailer" && v.site === "YouTube");
+                        return fetch(`https://api.themoviedb.org/3/movie/${info.id}/videos?api_key=${tmdbApiKey}`)
+                            .then(r2 => r2.json())
+                            .then(videoData => {
+                                const trailer = videoData.results?.find(v => v.type === "Trailer" && v.site === "YouTube");
                                 if (!trailer) return;
+
+                                if (totalFilmes >= limiteFilmes) return;
 
                                 const card = document.createElement("div");
                                 card.className = "movie-card";
-                                card.innerHTML = `
-                                    <img src="https://image.tmdb.org/t/p/w500${filme.poster_path}" alt="${info.titulo}" class="rounded mb-2">
-                                    <h3 class="text-sm font-semibold">${info.titulo}</h3>
-                                    <p class="text-xs text-gray-400">${info.inicio.toLocaleTimeString("pt-BR", {hour: '2-digit', minute: '2-digit'})}</p>
-                                `;
+                                card.innerHTML = \`
+                                    <img src="https://image.tmdb.org/t/p/w500\${info.poster_path}" alt="\${titulo}" class="rounded mb-2">
+                                    <h3 class="text-sm font-semibold">\${titulo}</h3>
+                                    <p class="text-xs text-gray-400">\${inicio.toLocaleTimeString("pt-BR", {hour: '2-digit', minute: '2-digit'})}</p>
+                                \`;
                                 card.onclick = () => {
                                     const iframe = document.createElement("iframe");
                                     iframe.className = "trailer-iframe";
                                     iframe.src = \`https://www.youtube.com/embed/\${trailer.key}\`;
-                                    document.getElementById("trailer-container").innerHTML = "";
-                                    document.getElementById("trailer-container").appendChild(iframe);
+                                    const container = document.getElementById("trailer-container");
+                                    container.innerHTML = "";
+                                    container.appendChild(iframe);
                                     document.getElementById("trailer-modal").style.display = "block";
                                 };
 
                                 container.appendChild(card);
+                                titulosUnicos.add(titulo);
                                 totalFilmes++;
-                                filmesAdicionados.add(info.titulo);
                             });
                     });
             });
 
             Promise.all(promises).then(() => {
-                container.querySelector(".loading-spinner")?.remove();
+                loading.remove();
             });
         })
         .catch(err => {
             console.error("Erro ao carregar filmes:", err);
             container.innerHTML = "<p class='text-center text-sm text-gray-400'>Erro ao carregar filmes.</p>";
         });
-}
-function buscarImagemFilme(tituloOriginal) {
+});
+                        
+                        for (const filme of programasDoCanal) {
+                            const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
+                            const titleClean = titleRaw.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+                            
+                            if (titulosUnicos.has(titleClean)) continue;
+                            
+                            const img = await buscarImagemFilme(titleRaw);
+                            if (img.includes("via.placeholder.com")) continue;
+                            
+                            titulosUnicos.add(titleClean);
+                            
+                            const channel = filme.getAttribute("channel");
+                            const start = filme.getAttribute("start");
+                            const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
+                            const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
+                            
+                            // Obter logo do canal
+                            let channelLogo = '';
+                            for (const [key, url] of Object.entries(channelLogos)) {
+                                if (channel.includes(key)) {
+                                    channelLogo = `<img src="${url}" alt="${key}" class="channel-logo">`;
+                                    break;
+                                }
+                            }
+                            
+                            const card = document.createElement("div");
+                            card.className = "movie-card";
+                            card.innerHTML = `
+                                <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded" loading="lazy">
+                                <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
+                                <div class="flex items-center mt-1">
+                                    ${channelLogo}
+                                    <p class="text-xs text-gray-300">${channel}</p>
+                                </div>
+                                <p class="text-xs text-gray-300">Horário: ${horario}</p>
+                                <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
+                                <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
+                                    Ver Trailer
+                                </button>
+                            `;
+                            container.appendChild(card);
+                            
+                            // Adicionar evento de clique ao botão de trailer
+                            card.querySelector('.ver-trailer-btn').addEventListener('click', (e) => {
+                                buscarTrailer(e.target.dataset.titulo);
+                            });
+                            
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar filmes:", error);
+                    container.innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar filmes</p>';
+                }
+            }
+            
+            async function buscarImagemFilme(tituloOriginal) {
                 const variacoes = [
                     tituloOriginal,
                     tituloOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
