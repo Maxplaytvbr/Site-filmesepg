@@ -564,7 +564,7 @@
 <section class="px-4 py-6 text-white" id="filmes-destaque">
 
 <h2 class="text-2xl font-bold mb-1 text-orange-500">🎬 Destaques do Dia</h2>
-<p class="text-sm text-gray-300 mb-4">Acompanhe aqui os filmes que ainda vão passar hoje nos principais canais.</p>
+<p class="text-sm text-gray-300 mb-4">Acompanhe aqui os filmes que ainda vão passar nos principais canais.</p>
 
 <div class="flex gap-4 overflow-x-auto pb-4" id="filmes">
 <div class="loading-spinner mx-auto"></div>
@@ -945,7 +945,7 @@
             });
             
             fetchEPGData();
-            carregarFilmes();
+            carregarFilmesExtendido();
             carregarEventosEsportivos();
             
             // Event Listeners
@@ -1043,7 +1043,7 @@
                 if (autoUpdateTimer) clearInterval(autoUpdateTimer);
                 
                 fetchEPGData();
-                carregarFilmes();
+                carregarFilmesExtendido();
                 carregarEventosEsportivos();
             }
             
@@ -2232,3 +2232,66 @@ function fecharModal() {
 </script>
 </body>
 </html>
+<script>
+function carregarFilmesExtendido() {
+    const filmesContainer = document.getElementById("filmes");
+    filmesContainer.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+
+    fetch("https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml")
+        .then(response => response.text())
+        .then(xmlText => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            const programmes = Array.from(xmlDoc.getElementsByTagName("programme"));
+            const filmes = [];
+            const agora = new Date();
+
+            for (let offset = 0; offset < 4; offset++) {
+                const dia = new Date(agora);
+                dia.setDate(agora.getDate() + offset);
+
+                const inicioDia = new Date(dia.setHours(0, 0, 0, 0));
+                const fimDia = new Date(dia.setHours(23, 59, 59, 999));
+
+                const filmesDia = programmes.filter(p => {
+                    const titulo = p.getElementsByTagName("title")[0]?.textContent?.trim() || "";
+                    const categoria = titulo.toLowerCase();
+                    const inicio = parseEPGDate(p.getAttribute("start"));
+                    return categoria && (categoria.includes("filme") || categoria.includes("cinema") || categoria.includes("movie")) &&
+                        inicio >= inicioDia && inicio <= fimDia;
+                });
+
+                filmesDia.forEach(filme => {
+                    const titulo = filme.getElementsByTagName("title")[0]?.textContent?.trim() || "";
+                    const inicio = parseEPGDate(filme.getAttribute("start"));
+                    const canal = filme.getAttribute("channel");
+                    if (!filmes.some(f => f.titulo === titulo)) {
+                        filmes.push({
+                            titulo,
+                            inicio,
+                            canal
+                        });
+                    }
+                });
+            }
+
+            filmes.sort((a, b) => a.inicio - b.inicio);
+            filmesContainer.innerHTML = "";
+
+            filmes.forEach(filme => {
+                const diaSemana = ["dom","seg","ter","qua","qui","sex","sab"][filme.inicio.getDay()];
+                const hora = filme.inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                const card = document.createElement("div");
+                card.className = "movie-card";
+                card.innerHTML = `
+                    <h3 class="text-sm font-semibold mb-1">${filme.titulo}</h3>
+                    <p class="text-xs text-gray-300">${hora} | ${diaSemana}</p>
+                `;
+                filmesContainer.appendChild(card);
+            });
+        })
+        .catch(() => {
+            filmesContainer.innerHTML = "<p class='text-red-500 text-sm'>Erro ao carregar filmes.</p>";
+        });
+}
+</script>
