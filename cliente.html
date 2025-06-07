@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -12,56 +13,7 @@
 <!-- Fontes -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com">
-
-async function carregarFilmes() {
-  const filmesContainer = document.getElementById('filmes');
-  filmesContainer.innerHTML = '';
-
-  const canaisFilmesConfiaveis = [
-    'HBO', 'HBO2', 'HBO Plus', 'HBO Family', 'HBO Signature', 'HBO Mundi',
-    'HBO Pop', 'HBO Xtreme', 'Telecine Premium', 'Telecine Action',
-    'Telecine Touch', 'Telecine Fun', 'Telecine Pipoca', 'Telecine Cult',
-    'Megapix', 'Cinemax', 'Space'
-  ];
-
-  const normalizar = nome => nome.toLowerCase().replace(/\s|[-_.]/g, '');
-  const filmes = [];
-  const titulosUsados = new Set();
-
-  for (const [channelId, programas] of Object.entries(allProgrammesByChannel)) {
-    const canalValido = canaisFilmesConfiaveis.some(c => normalizar(channelId).includes(normalizar(c)));
-    if (!canalValido) continue;
-
-    let adicionados = 0;
-    for (const prog of programas) {
-      if (filmes.length >= 30 || adicionados >= 5) break;
-
-      const title = prog.getElementsByTagName('title')[0]?.textContent?.trim();
-      const start = parseEPGDate(prog.getAttribute('start'));
-      const stop = parseEPGDate(prog.getAttribute('stop'));
-      const duracaoMin = (stop - start) / 60000;
-
-      if (!title || duracaoMin < 60) continue;
-      if (titulosUsados.has(title)) continue;
-      if (/epis[oó]dio|temporada|cap[ií]tulo|ep\.|s\d|t\d/i.test(title)) continue;
-
-      const card = await buscarFilmeTMDB(title, prog);
-      if (card) {
-        filmes.push({ title, card });
-        filmesContainer.appendChild(card);
-        titulosUsados.add(title);
-        adicionados++;
-      }
-    }
-  }
-
-  if (filmes.length === 0) {
-    filmesContainer.innerHTML = '<p class="text-gray-400">Nenhum filme com trailer encontrado hoje.</p>';
-  }
-}
-
-</script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
         tailwind.config = {
             theme: {
@@ -77,56 +29,7 @@ async function carregarFilmes() {
                 }
             }
         }
-    
-
-async function carregarFilmes() {
-  const filmesContainer = document.getElementById('filmes');
-  filmesContainer.innerHTML = '';
-
-  const canaisFilmesConfiaveis = [
-    'HBO', 'HBO2', 'HBO Plus', 'HBO Family', 'HBO Signature', 'HBO Mundi',
-    'HBO Pop', 'HBO Xtreme', 'Telecine Premium', 'Telecine Action',
-    'Telecine Touch', 'Telecine Fun', 'Telecine Pipoca', 'Telecine Cult',
-    'Megapix', 'Cinemax', 'Space'
-  ];
-
-  const normalizar = nome => nome.toLowerCase().replace(/\s|[-_.]/g, '');
-  const filmes = [];
-  const titulosUsados = new Set();
-
-  for (const [channelId, programas] of Object.entries(allProgrammesByChannel)) {
-    const canalValido = canaisFilmesConfiaveis.some(c => normalizar(channelId).includes(normalizar(c)));
-    if (!canalValido) continue;
-
-    let adicionados = 0;
-    for (const prog of programas) {
-      if (filmes.length >= 30 || adicionados >= 5) break;
-
-      const title = prog.getElementsByTagName('title')[0]?.textContent?.trim();
-      const start = parseEPGDate(prog.getAttribute('start'));
-      const stop = parseEPGDate(prog.getAttribute('stop'));
-      const duracaoMin = (stop - start) / 60000;
-
-      if (!title || duracaoMin < 60) continue;
-      if (titulosUsados.has(title)) continue;
-      if (/epis[oó]dio|temporada|cap[ií]tulo|ep\.|s\d|t\d/i.test(title)) continue;
-
-      const card = await buscarFilmeTMDB(title, prog);
-      if (card) {
-        filmes.push({ title, card });
-        filmesContainer.appendChild(card);
-        titulosUsados.add(title);
-        adicionados++;
-      }
-    }
-  }
-
-  if (filmes.length === 0) {
-    filmesContainer.innerHTML = '<p class="text-gray-400">Nenhum filme com trailer encontrado hoje.</p>';
-  }
-}
-
-</script>
+    </script>
 <style>
         body {
             background-color: #0f172a;
@@ -845,7 +748,7 @@ async function carregarFilmes() {
             "Band Sports": "https://logodownload.org/wp-content/uploads/2017/07/band-sports-logo.png",
             "Combate": "https://logodownload.org/wp-content/uploads/2017/07/combate-logo.png"
         };
-
+        
         // Escudos de times esportivos
         const escudos = {
             // Times brasileiros
@@ -1801,103 +1704,102 @@ async function carregarFilmes() {
                 trailerModal.style.display = 'block';
             }
             
-            async function carregarFilmes() {
-                const container = document.getElementById("filmes");
-                container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-                
-                const canais = [
-                    "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix", "HBO Family", "HBO", "HBO2",
-                    "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
-                ];
-                
-                try {
-                    const response = await fetch(epgXmlUrl);
-                    const xmlText = await response.text();
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(xmlText, "text/xml");
-                    
-                    const programas = Array.from(xml.getElementsByTagName("programme"));
-                    const hoje = new Date();
-                    const hojeStr = hoje.toISOString().split("T")[0].replace(/-/g, "");
-                    
-                    const titulosUnicos = new Set();
-                    container.innerHTML = "";
-                    
-                    for (const canal of canais) {
-                        const programasDoCanal = programas.filter(p => {
-                            const channel = p.getAttribute("channel") || "";
-                            const start = p.getAttribute("start") || "";
-                            
-                            const startTime = new Date(
-                                parseInt(start.slice(0, 4)),
-                                parseInt(start.slice(4, 6)) - 1,
-                                parseInt(start.slice(6, 8)),
-                                parseInt(start.slice(8, 10)),
-                                parseInt(start.slice(10, 12))
-                            );
-                            
-                            return channel.toLowerCase().includes(canal.toLowerCase()) &&
-                                   start.startsWith(hojeStr) &&
-                                   startTime >= new Date();
-                        });
-                        
-                        for (const filme of programasDoCanal) {
-                            const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
-                            const titleClean = titleRaw.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-                            
-                            if (titulosUnicos.has(titleClean)) continue;
-                            
-                            const img = await buscarImagemFilme(titleRaw);
-                            if (img.includes("via.placeholder.com")) continue;
-                            
-                            titulosUnicos.add(titleClean);
-                            
-                            const channel = filme.getAttribute("channel");
-                            const start = filme.getAttribute("start");
-                            const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
-                            const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
-                            
-                            // Obter logo do canal
-                            let channelLogo = '';
-                            for (const [key, url] of Object.entries(channelLogos)) {
-                                if (channel.includes(key)) {
-                                    channelLogo = `<img src="${url}" alt="${key}" class="channel-logo">`;
-                                    break;
-                                }
-                            }
-                            
-                            const card = document.createElement("div");
-                            card.className = "movie-card";
-                            card.innerHTML = `
-                                <img src="${img}" alt="${titleRaw}" class="w-full h-60 object-cover mb-2 rounded" loading="lazy">
-                                <h3 class="text-sm font-bold text-white">${titleRaw}</h3>
-                                <div class="flex items-center mt-1">
-                                    ${channelLogo}
-                                    <p class="text-xs text-gray-300">${channel}</p>
-                                </div>
-                                <p class="text-xs text-gray-300">Horário: ${horario}</p>
-                                <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
-                                <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
-                                    Ver Trailer
-                                </button>
-                            `;
-                            container.appendChild(card);
-                            
-                            // Adicionar evento de clique ao botão de trailer
-                            card.querySelector('.ver-trailer-btn').addEventListener('click', (e) => {
-                                buscarTrailer(e.target.dataset.titulo);
-                            });
-                            
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.error("Erro ao carregar filmes:", error);
-                    container.innerHTML = '<p class="text-red-400 text-center py-4">Erro ao carregar filmes</p>';
+            async 
+function carregarFilmes() {
+    const url = epgXmlUrl;
+    const container = document.getElementById("filmes");
+    container.innerHTML = "";
+    const loading = document.createElement("div");
+    loading.className = "loading-spinner mx-auto";
+    container.appendChild(loading);
+
+    const canais = [
+        "Telecine Action", "Telecine Premium", "Telecine Pipoca", "Megapix",
+        "HBO Family", "HBO", "HBO2", "Cinemax", "Telecine Touch", 
+        "Paramount", "Telecine Fun", "Space", "TNT", "TNT Séries", "Warner", 
+        "Sony", "Universal TV", "AMC", "FX", "AXN", "Star Channel", 
+        "Star Premium", "Canal Brasil", "Sony Movies"
+    ];
+
+    const maxFilmes = 30;
+    let totalFilmes = 0;
+    const filmesAdicionados = new Set();
+
+    fetch(url)
+        .then(response => response.text())
+        .then(xmlText => {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(xmlText, "text/xml");
+            const programas = xml.getElementsByTagName("programme");
+            const agora = new Date();
+
+            const filmesFiltrados = [];
+
+            for (let i = 0; i < programas.length; i++) {
+                const prog = programas[i];
+                const canal = prog.getAttribute("channel");
+                const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
+                const inicio = parseEPGDate(prog.getAttribute("start"));
+                const fim = parseEPGDate(prog.getAttribute("stop"));
+
+                if (!titulo || filmesAdicionados.has(titulo)) continue;
+                if (inicio < agora || fim < agora) continue;
+
+                if (canais.some(c => canal.toLowerCase().includes(c.toLowerCase()))) {
+                    filmesFiltrados.push({ titulo, inicio, canal });
                 }
             }
-            
-            async function buscarImagemFilme(tituloOriginal) {
+
+            // Ordenar por horário de exibição
+            filmesFiltrados.sort((a, b) => a.inicio - b.inicio);
+
+            const promises = filmesFiltrados.map(info => {
+                return fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(info.titulo)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const filme = data.results?.[0];
+                        if (!filme || !filme.poster_path || filme.media_type === "tv") return;
+
+                        // Buscar trailer
+                        return fetch(`https://api.themoviedb.org/3/movie/${filme.id}/videos?api_key=${tmdbApiKey}`)
+                            .then(r => r.json())
+                            .then(videos => {
+                                const trailer = videos.results?.find(v => v.type === "Trailer" && v.site === "YouTube");
+                                if (!trailer) return;
+
+                                const card = document.createElement("div");
+                                card.className = "movie-card";
+                                card.innerHTML = `
+                                    <img src="https://image.tmdb.org/t/p/w500${filme.poster_path}" alt="${info.titulo}" class="rounded mb-2">
+                                    <h3 class="text-sm font-semibold">${info.titulo}</h3>
+                                    <p class="text-xs text-gray-400">${info.inicio.toLocaleTimeString("pt-BR", {hour: '2-digit', minute: '2-digit'})}</p>
+                                `;
+                                card.onclick = () => {
+                                    const iframe = document.createElement("iframe");
+                                    iframe.className = "trailer-iframe";
+                                    iframe.src = \`https://www.youtube.com/embed/\${trailer.key}\`;
+                                    document.getElementById("trailer-container").innerHTML = "";
+                                    document.getElementById("trailer-container").appendChild(iframe);
+                                    document.getElementById("trailer-modal").style.display = "block";
+                                };
+
+                                container.appendChild(card);
+                                totalFilmes++;
+                                filmesAdicionados.add(info.titulo);
+                            });
+                    });
+            });
+
+            Promise.all(promises).then(() => {
+                container.querySelector(".loading-spinner")?.remove();
+            });
+        })
+        .catch(err => {
+            console.error("Erro ao carregar filmes:", err);
+            container.innerHTML = "<p class='text-center text-sm text-gray-400'>Erro ao carregar filmes.</p>";
+        });
+}
+function buscarImagemFilme(tituloOriginal) {
                 const variacoes = [
                     tituloOriginal,
                     tituloOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -1928,16 +1830,15 @@ async function carregarFilmes() {
                 return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
             }
             
-            // Funções auxiliares melhoradas para eventos esportivos
+            // Funções auxiliares para eventos esportivos
             function formatarDataHoraCompleta(date) {
                 const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
                 const dia = date.getDate().toString().padStart(2, '0');
                 const mes = (date.getMonth() + 1).toString().padStart(2, '0');
                 const hora = date.getHours().toString().padStart(2, '0');
-                const minuto = date.getMinutes().toString().padStart(2, '0');
                 const diaSemana = diasSemana[date.getDay()];
                 
-                return `${dia}/${mes} ${hora}:${minuto} (${diaSemana})`;
+                return `${dia}/${mes} ${hora}h (${diaSemana})`;
             }
             
             function getStatusEvento(dataEvento, agora) {
@@ -1950,38 +1851,11 @@ async function carregarFilmes() {
                 return 'upcoming';
             }
             
-            function limparTituloEvento(titulo) {
-                // Remove prefixos e sufixos comuns
-                const prefixosRemover = [
-                    'ao vivo', 'jogo', 'partida', 'campeonato', 'transmissão', 'de', 'da', 'do',
-                    'série a', 'série b', 'brasileirão', 'libertadores', 'copa', 'liga', 'playoffs',
-                    'rodada', 'temporada', 'final', 'semifinal', 'quartas', 'oitavas'
-                ];
-                
-                let tituloLimpo = titulo.toLowerCase();
-                
-                // Remove horários (padrão 00h00)
-                tituloLimpo = tituloLimpo.replace(/\d{1,2}h\d{0,2}/g, '');
-                
-                // Remove prefixos
-                prefixosRemover.forEach(prefixo => {
-                    const regex = new RegExp(`^${prefixo}\\s*[-:]\\s*|\\s*${prefixo}$`, 'gi');
-                    tituloLimpo = tituloLimpo.replace(regex, '');
-                });
-                
-                // Remove espaços extras e caracteres especiais
-                tituloLimpo = tituloLimpo.trim()
-                    .replace(/^[-–—:]+/, '')
-                    .replace(/[-–—:]+$/, '')
-                    .trim();
-                
-                return tituloLimpo;
-            }
-            
             function corrigirNomeTime(nome) {
-                if (!nome || nome.trim() === '') return "Time desconhecido";
-                
                 const correcoes = {
+                    "VT-": "",
+                    "brasil": "Brasil",
+                    "vitorias": "Vitória",
                     "fla": "Flamengo",
                     "flu": "Fluminense",
                     "bot": "Botafogo",
@@ -1989,118 +1863,61 @@ async function carregarFilmes() {
                     "pal": "Palmeiras",
                     "spfc": "São Paulo",
                     "san": "Santos",
-                    "vas": "Vasco",
-                    "cam": "Atlético-MG",
-                    "cru": "Cruzeiro",
-                    "int": "Internacional",
-                    "gre": "Grêmio",
-                    "cap": "Athletico-PR",
-                    "for": "Fortaleza",
-                    "cea": "Ceará",
-                    "bah": "Bahia",
-                    "spt": "Sport",
-                    "brag": "Red Bull Bragantino",
-                    "goi": "Goiás",
-                    "cui": "Cuiabá",
-                    "ame": "América-MG",
-                    "cfc": "Coritiba",
-                    "cha": "Chapecoense",
-                    "fig": "Figueirense",
-                    "naut": "Náutico",
-                    "vit": "Vitória",
-                    "abc": "ABC",
-                    "bra": "Brasil",
-                    "arg": "Argentina",
-                    "fra": "França",
-                    "ale": "Alemanha",
-                    "ing": "Inglaterra",
-                    "esp": "Espanha",
-                    "ita": "Itália"
+                    "campeonato": "",
+                    "brasileiro": "",
+                    "libertadores": ""
                 };
                 
-                // Verifica se o nome já está na lista de correções
-                for (const [abrev, nomeCompleto] of Object.entries(correcoes)) {
-                    if (nome.toLowerCase() === abrev.toLowerCase()) {
-                        return nomeCompleto;
-                    }
+                let nomeCorrigido = nome;
+                for (const [erro, correcao] of Object.entries(correcoes)) {
+                    nomeCorrigido = nomeCorrigido.replace(new RegExp(erro, 'gi'), correcao);
                 }
                 
-                // Capitalizar primeira letra e manter o resto
-                nome = nome.trim();
-                return nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
+                // Capitalizar primeira letra
+                nomeCorrigido = nomeCorrigido.trim();
+                if (nomeCorrigido.length > 0) {
+                    nomeCorrigido = nomeCorrigido.charAt(0).toUpperCase() + nomeCorrigido.slice(1).toLowerCase();
+                }
+                
+                return nomeCorrigido || "Time desconhecido";
             }
             
             function normalizarEsporte(titulo, desc) {
-                const texto = (titulo + ' ' + desc).toLowerCase();
+                const texto = (titulo + desc).toLowerCase();
                 
-                // Futebol
-                if (/(futebol|brasileir[oã]|paulista|carioca|libertadores|laliga|champions|premier\s*league|serie\s*a|serie\s*b|bundesliga|calcio)/.test(texto) ||
-                    /(flamengo|corinthians|palmeiras|sao\s*paulo|santos|vasco|botafogo|fluminense|gremio|internacional)/.test(texto)) {
+                if (/(futebol|brasileiro|brasileirão|paulista|carioca|libertadores|laliga|champions)/i.test(texto)) {
                     return "Futebol";
                 }
-                
-                // UFC/MMA
-                if (/(ufc|mma|luta|combate|oct[oó]gono|peso\s*(leve|m[ée]dio|pesado)|(advers[áa]rios?)|(round|rounds)/.test(texto) ||
-                    /(silva|aldo|belfort|teixeira|oliveira|pantoja|poirier|mcgregor|khabib|jones|gsp|miocic)/.test(texto)) {
+                if (/(ufc|mma|luta|mixed martial arts)/i.test(texto)) {
                     return "UFC";
                 }
-                
-                // Boxe
-                if (/(boxe|ringue|luvas?|nocaute|knockout|ko|wbo|wbc|wba|ibf)/.test(texto)) {
+                if (/box/i.test(texto)) {
                     return "Boxe";
                 }
-                
-                // Vôlei
-                if (/(volei|v[ôo]lei|superliga|levantador|ponteiro|central|libero)/.test(texto) ||
-                    /(sada\s*cruzeiro|minas|taubat[eé]|sesi|funvic|campinas)/.test(texto)) {
+                if (/(volei|vôlei)/i.test(texto)) {
                     return "Vôlei";
                 }
-                
-                // Basquete
-                if (/(basquete|nba|quadra|arremesso|enterrada|bandeja|t[êi]s\s*pontos)/.test(texto) ||
-                    /(lakers|warriors|bulls|celtics|nets|heat|bucks)/.test(texto)) {
+                if (/(nba|basquete)/i.test(texto)) {
                     return "Basquete";
                 }
-                
                 return "Outros Esportes";
             }
             
-            function extrairTimes(tituloOriginal) {
-                let titulo = limparTituloEvento(tituloOriginal);
-                
-                // Padrões de correspondência
-                const padroes = [
-                    // Padrão: Time1 vs Time2
-                    /(.+?)\s+(?:vs|versus|x|×)\s+(.+)/i,
-                    // Padrão: Time1 - Time2
-                    /(.+?)\s*[-–—]\s*(.+)/i,
-                    // Padrão: Time1 x Time2
-                    /(.+?)\s*x\s*(.+)/i,
-                    // Padrão: Time1 contra Time2
-                    /(.+?)\s+contra\s+(.+)/i
-                ];
-                
-                // Tenta cada padrão até encontrar uma correspondência
-                for (const padrao of padroes) {
-                    const match = titulo.match(padrao);
-                    if (match && match[1] && match[2]) {
-                        return [
-                            corrigirNomeTime(match[1].trim()),
-                            corrigirNomeTime(match[2].trim())
-                        ];
-                    }
+            function extrairTimes(titulo) {
+                // Primeiro tenta encontrar padrão com "x" ou "vs"
+                const regexPadrao = /(.+?)\s+(?:vs|x|×)\s+(.+)/i;
+                const matchPadrao = titulo.match(regexPadrao);
+                if (matchPadrao) {
+                    return [corrigirNomeTime(matchPadrao[1]), corrigirNomeTime(matchPadrao[2])];
                 }
                 
-                // Se nenhum padrão for encontrado, tenta dividir por espaços
-                const partes = titulo.split(/\s+/);
+                // Se não encontrar, tenta dividir por hífen
+                const partes = titulo.split(/[-–]/);
                 if (partes.length >= 2) {
-                    return [
-                        corrigirNomeTime(partes.slice(0, partes.length/2).join(' ')),
-                        corrigirNomeTime(partes.slice(partes.length/2).join(' '))
-                    ];
+                    return [corrigirNomeTime(partes[0]), corrigirNomeTime(partes[1])];
                 }
                 
-                // Se tudo falhar, retorna o título original como time1
+                // Se não conseguir, retorna o título original
                 return [corrigirNomeTime(titulo), ""];
             }
             
@@ -2246,36 +2063,19 @@ async function carregarFilmes() {
                         const xml = new DOMParser().parseFromString(xmlText, "text/xml");
                         
                         Array.from(xml.getElementsByTagName("programme")).forEach(prog => {
-                            const tituloOriginal = prog.getElementsByTagName("title")[0]?.textContent || "";
+                            const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
                             const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
                             const canal = prog.getAttribute("channel") || "";
                             
-                            // Verifica se é um canal esportivo permitido
-                            const isCanalEsportivo = canaisEsportivos.some(c => canal.toLowerCase().includes(c.toLowerCase()));
+                            // Verifica se é um canal esportivo
+                            const isCanalEsportivo = canaisEsportivos.some(c => canal.includes(c));
                             if (!isCanalEsportivo) return;
                             
-                            // Limpa e prepara o título para análise
-                            const tituloLimpo = limparTituloEvento(tituloOriginal);
+                            // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
+                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga|luta|ufc|mma)/i.test(titulo + desc);
+                            if (!isEventoEsportivo) return;
                             
-                            // Verifica se parece ser um evento esportivo real
-                            const [time1, time2] = extrairTimes(tituloLimpo);
-                            const temDoisTimesValidos = time1 && time2 && 
-                                time1 !== "Time desconhecido" && 
-                                time2 !== "Time desconhecido" &&
-                                time1.toLowerCase() !== time2.toLowerCase();
-                            
-                            if (!temDoisTimesValidos) return;
-                            
-                            // Determina o tipo de esporte
-                            const esporte = normalizarEsporte(tituloLimpo, desc);
-                            
-                            // Filtra pelo esporte selecionado
-                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
-                            
-                            // Obtém a data do evento
                             const inicio = prog.getAttribute("start");
-                            if (!inicio || inicio.length < 12) return;
-                            
                             const data = new Date(
                                 parseInt(inicio.slice(0, 4)),
                                 parseInt(inicio.slice(4, 6)) - 1,
@@ -2284,10 +2084,7 @@ async function carregarFilmes() {
                                 parseInt(inicio.slice(10, 12))
                             );
                             
-                            // Ajusta para o fuso horário de Brasília (UTC-3)
-                            data.setHours(data.getHours() - 3);
-                            
-                            // Filtra pelo dia selecionado
+                            // Ajustar para o dia selecionado
                             const hoje = new Date();
                             hoje.setDate(hoje.getDate() + currentDayOffset);
                             hoje.setHours(0, 0, 0, 0);
@@ -2297,12 +2094,33 @@ async function carregarFilmes() {
                             
                             if (data < hoje || data >= amanha) return;
                             
+                            // Determina o esporte
+                            const esporte = normalizarEsporte(titulo, desc);
+                            
+                            // Filtra por esporte selecionado
+                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
+                            
+                            // Extrai os participantes
+                            let [time1, time2] = extrairTimes(titulo);
+                            
+                            // Para UFC/MMA, ajusta os nomes
+                            if (esporte === "UFC") {
+                                // Tenta extrair os nomes dos lutadores
+                                const lutadores = titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
+                                                 [null, time1, time2];
+                                time1 = lutadores[1] || time1;
+                                time2 = lutadores[2] || time2;
+                            }
+                            
+                            if (!time1 || !time2) return;
+                            
                             // Determina o status do evento
                             const status = getStatusEvento(data, now);
                             
                             // Cria o objeto do evento
                             const evento = {
-                                titulo: tituloOriginal,
+                                titulo, 
                                 data, 
                                 time1, 
                                 time2, 
@@ -2312,10 +2130,7 @@ async function carregarFilmes() {
                             };
                             
                             // Adiciona ao mapa (evita duplicatas)
-                            const chaveUnica = `${time1}-${time2}-${data.getTime()}`;
-                            if (!eventosMap.has(chaveUnica)) {
-                                eventosMap.set(chaveUnica, evento);
-                            }
+                            eventosMap.set(`${time1}-${time2}-${data.getTime()}`, evento);
                         });
                     }
                     
@@ -2324,19 +2139,14 @@ async function carregarFilmes() {
                         .sort((a, b) => a.data - b.data);
                     
                     if (eventos.length === 0) {
-                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento de ${currentSportFilter} encontrado</p>`;
+                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento encontrado para ${currentSportFilter}</p>`;
                         return;
                     }
                     
                     // Agrupa por data
                     const eventosPorData = {};
                     eventos.forEach(evento => {
-                        const dataKey = evento.data.toLocaleDateString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        });
-                        
+                        const dataKey = evento.data.toLocaleDateString('pt-BR');
                         if (!eventosPorData[dataKey]) {
                             eventosPorData[dataKey] = [];
                         }
@@ -2361,60 +2171,11 @@ async function carregarFilmes() {
                     }
                 } catch (error) {
                     console.error("Erro ao carregar eventos esportivos:", error);
-                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos: ${error.message}</p>`;
+                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos</p>`;
                 }
             }
         });
-    
-
-async function carregarFilmes() {
-  const filmesContainer = document.getElementById('filmes');
-  filmesContainer.innerHTML = '';
-
-  const canaisFilmesConfiaveis = [
-    'HBO', 'HBO2', 'HBO Plus', 'HBO Family', 'HBO Signature', 'HBO Mundi',
-    'HBO Pop', 'HBO Xtreme', 'Telecine Premium', 'Telecine Action',
-    'Telecine Touch', 'Telecine Fun', 'Telecine Pipoca', 'Telecine Cult',
-    'Megapix', 'Cinemax', 'Space'
-  ];
-
-  const normalizar = nome => nome.toLowerCase().replace(/\s|[-_.]/g, '');
-  const filmes = [];
-  const titulosUsados = new Set();
-
-  for (const [channelId, programas] of Object.entries(allProgrammesByChannel)) {
-    const canalValido = canaisFilmesConfiaveis.some(c => normalizar(channelId).includes(normalizar(c)));
-    if (!canalValido) continue;
-
-    let adicionados = 0;
-    for (const prog of programas) {
-      if (filmes.length >= 30 || adicionados >= 5) break;
-
-      const title = prog.getElementsByTagName('title')[0]?.textContent?.trim();
-      const start = parseEPGDate(prog.getAttribute('start'));
-      const stop = parseEPGDate(prog.getAttribute('stop'));
-      const duracaoMin = (stop - start) / 60000;
-
-      if (!title || duracaoMin < 60) continue;
-      if (titulosUsados.has(title)) continue;
-      if (/epis[oó]dio|temporada|cap[ií]tulo|ep\.|s\d|t\d/i.test(title)) continue;
-
-      const card = await buscarFilmeTMDB(title, prog);
-      if (card) {
-        filmes.push({ title, card });
-        filmesContainer.appendChild(card);
-        titulosUsados.add(title);
-        adicionados++;
-      }
-    }
-  }
-
-  if (filmes.length === 0) {
-    filmesContainer.innerHTML = '<p class="text-gray-400">Nenhum filme com trailer encontrado hoje.</p>';
-  }
-}
-
-</script>
+    </script>
 <div class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden items-center justify-center" id="trailerModal">
 <div class="bg-gray-900 p-4 rounded-lg shadow-lg relative w-full max-w-3xl">
 <button class="absolute top-2 right-2 text-white text-2xl" onclick="fecharModal()">×</button>
@@ -2465,55 +2226,6 @@ function fecharModal() {
   document.getElementById("trailerModal").classList.remove("flex");
   document.getElementById("trailerContainer").innerHTML = "";
 }
-
-
-async function carregarFilmes() {
-  const filmesContainer = document.getElementById('filmes');
-  filmesContainer.innerHTML = '';
-
-  const canaisFilmesConfiaveis = [
-    'HBO', 'HBO2', 'HBO Plus', 'HBO Family', 'HBO Signature', 'HBO Mundi',
-    'HBO Pop', 'HBO Xtreme', 'Telecine Premium', 'Telecine Action',
-    'Telecine Touch', 'Telecine Fun', 'Telecine Pipoca', 'Telecine Cult',
-    'Megapix', 'Cinemax', 'Space'
-  ];
-
-  const normalizar = nome => nome.toLowerCase().replace(/\s|[-_.]/g, '');
-  const filmes = [];
-  const titulosUsados = new Set();
-
-  for (const [channelId, programas] of Object.entries(allProgrammesByChannel)) {
-    const canalValido = canaisFilmesConfiaveis.some(c => normalizar(channelId).includes(normalizar(c)));
-    if (!canalValido) continue;
-
-    let adicionados = 0;
-    for (const prog of programas) {
-      if (filmes.length >= 30 || adicionados >= 5) break;
-
-      const title = prog.getElementsByTagName('title')[0]?.textContent?.trim();
-      const start = parseEPGDate(prog.getAttribute('start'));
-      const stop = parseEPGDate(prog.getAttribute('stop'));
-      const duracaoMin = (stop - start) / 60000;
-
-      if (!title || duracaoMin < 60) continue;
-      if (titulosUsados.has(title)) continue;
-      if (/epis[oó]dio|temporada|cap[ií]tulo|ep\.|s\d|t\d/i.test(title)) continue;
-
-      const card = await buscarFilmeTMDB(title, prog);
-      if (card) {
-        filmes.push({ title, card });
-        filmesContainer.appendChild(card);
-        titulosUsados.add(title);
-        adicionados++;
-      }
-    }
-  }
-
-  if (filmes.length === 0) {
-    filmesContainer.innerHTML = '<p class="text-gray-400">Nenhum filme com trailer encontrado hoje.</p>';
-  }
-}
-
 </script>
 </body>
 </html>
