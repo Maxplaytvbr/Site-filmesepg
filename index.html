@@ -367,78 +367,6 @@
             transform: translateY(-5px);
         }
         
-        /* Cards de eventos esportivos */
-        .sport-event-card {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 1rem;
-            min-width: 280px;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 107, 0, 0.2);
-        }
-        
-        .sport-event-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-color: rgba(255, 107, 0, 0.5);
-        }
-        
-        .sport-event-card.live {
-            border-color: #ef4444;
-            background-color: rgba(220, 38, 38, 0.1);
-        }
-        
-        .sport-event-card.soon {
-            border-color: #eab308;
-            background-color: rgba(234, 179, 8, 0.1);
-        }
-        
-        .sport-event-title {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .sport-event-desc {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        /* Cards de eventos MMA */
-        .sport-event-card.mma {
-            background-color: rgba(0, 0, 0, 0.7);
-            border: 1px solid #d20a0a;
-        }
-        
-        .sport-event-card.mma .fighter-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #d20a0a;
-            margin-bottom: 8px;
-        }
-        
-        .sport-event-card.mma .fighter-name {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .sport-event-card.mma .fighter-nickname {
-            font-size: 0.8rem;
-            color: #d20a0a;
-            font-style: italic;
-        }
-        
-        .sport-event-card.mma .fighter-record {
-            font-size: 0.75rem;
-            color: #aaa;
-        }
-        
         /* Botão Voltar ao Topo */
         #back-to-top {
             transition: all 0.3s ease;
@@ -490,10 +418,6 @@
             
             .channel-card {
                 min-height: 200px;
-            }
-            
-            .sport-event-card {
-                min-width: 240px;
             }
             
             .movie-card {
@@ -570,41 +494,6 @@
 <div class="loading-spinner mx-auto"></div>
 </div>
 </section>
-<!-- Seção de Eventos Esportivos -->
-<!-- <section class="px-4 py-6 text-white" id="jogos-hoje">
-<h2 class="text-2xl font-bold mb-4 text-orange-500">🏟️ EVENTOS ESPORTIVOS MAXPLAY</h2>
-<div class="flex flex-wrap gap-2 mb-4" id="filtros-esportes">
-<button class="filter-esporte px-3 py-1 rounded bg-orange-600 text-white text-sm" data-esporte="Futebol">Futebol</button>
-<button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="UFC">UFC</button>
-<button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Boxe">Boxe</button>
-<button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Vôlei">Vôlei</button>
-<button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Basquete">Basquete</button>
-<button class="filter-esporte px-3 py-1 rounded bg-gray-700 text-white text-sm" data-esporte="Outros Esportes">Outros</button>
-</div>
-<div class="flex overflow-x-auto gap-4 pb-4" id="jogos-container">
-<div class="loading-spinner mx-auto"></div>
-</div>
-<div class="flex justify-center mt-4 gap-2">
-<button class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition hidden" id="ver-dia-anterior">
-<svg aria-hidden="true" class="h-5 w-5 inline-block mr-1" fill="none" role="img" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-                Dia Anterior
-            </button>
-<button class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition hidden" id="ver-hoje">
-<svg aria-hidden="true" class="h-5 w-5 inline-block mr-1" fill="none" role="img" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-                Ver Hoje
-            </button>
-<button class="px-4 py-2 bg-vibrant-orange text-white rounded hover:bg-orange-600 transition" id="ver-proximo-dia">
-                Próximo Dia
-                <svg aria-hidden="true" class="h-5 w-5 inline-block ml-1" fill="none" role="img" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-</button>
-</div>
-</section> -->
 <!-- Seção Principal de Canais -->
 <div class="container mx-auto px-4 py-6">
 <div class="flex justify-center items-center h-40" id="loading">
@@ -681,16 +570,6 @@
         // Configurações globais
         const tmdbApiKey = "54b9cff0f48a3f127fa5cd5906bbe251";
         const epgXmlUrl = "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/vivoplay.xml";
-        const sportEventsUrls = [
-            "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/claro.xml",
-            "https://raw.githubusercontent.com/limaalef/BrazilTVEPG/main/epg.xml"
-        ];
-        
-        // Canais esportivos permitidos
-        const canaisEsportivos = [
-            "SporTV", "SporTV 2", "SporTV 3", "ESPN", "ESPN 2", "ESPN 3", "ESPN 4",
-            "Fox Sports", "Fox Sports 2", "Band Sports", "Premiere", "Combate", "OFF", "Woohoo"
-        ];
         
         // Mapeamento de logos de canais
         const channelLogos = {
@@ -739,84 +618,6 @@
             "Premiere": "https://i.postimg.cc/dQ9SR7BW/IMG-6926.png",
             "Record": "https://i.postimg.cc/Vv4GzTvy/IMG-6925.png",
             "RedeTV!": "https://i.postimg.cc/xTTp60p9/IMG-6927.png"
-        };
-        
-        // Logos dos canais esportivos
-        const logosCanaisEsportivos = {
-            "SporTV": "https://logodownload.org/wp-content/uploads/2017/07/sportv-logo.png",
-            "ESPN": "https://logodownload.org/wp-content/uploads/2015/05/espn-logo.png",
-            "Premiere": "https://logodownload.org/wp-content/uploads/2020/04/premiere-fc-logo.png",
-            "Fox Sports": "https://logodownload.org/wp-content/uploads/2018/09/fox-sports-logo.png",
-            "Band Sports": "https://logodownload.org/wp-content/uploads/2017/07/band-sports-logo.png",
-            "Combate": "https://logodownload.org/wp-content/uploads/2017/07/combate-logo.png"
-        };
-        
-        // Escudos de times esportivos
-        const escudos = {
-            // Times brasileiros
-            "Corinthians": "https://logodownload.org/wp-content/uploads/2019/12/corinthians-logo.png",
-            "Palmeiras": "https://logodownload.org/wp-content/uploads/2019/12/palmeiras-logo.png",
-            "São Paulo": "https://logodownload.org/wp-content/uploads/2019/12/sao-paulo-logo.png",
-            "Santos": "https://logodownload.org/wp-content/uploads/2019/12/santos-logo.png",
-            "Flamengo": "https://logodownload.org/wp-content/uploads/2019/12/flamengo-logo.png",
-            "Fluminense": "https://logodownload.org/wp-content/uploads/2019/12/fluminense-logo.png",
-            "Vasco": "https://logodownload.org/wp-content/uploads/2019/12/vasco-logo.png",
-            "Botafogo": "https://logodownload.org/wp-content/uploads/2019/12/botafogo-logo.png",
-            "Grêmio": "https://logodownload.org/wp-content/uploads/2019/12/gremio-logo.png",
-            "Internacional": "https://logodownload.org/wp-content/uploads/2019/12/internacional-logo.png",
-            "Atlético-MG": "https://logodownload.org/wp-content/uploads/2019/12/atletico-mineiro-logo.png",
-            "Cruzeiro": "https://logodownload.org/wp-content/uploads/2019/12/cruzeiro-logo.png",
-            "Bahia": "https://logodownload.org/wp-content/uploads/2019/12/bahia-logo.png",
-            "Vitória": "https://logodownload.org/wp-content/uploads/2019/12/vitoria-logo.png",
-            "Sport": "https://logodownload.org/wp-content/uploads/2019/12/sport-logo.png",
-            "Náutico": "https://logodownload.org/wp-content/uploads/2019/12/nautico-logo.png",
-            "Ceará": "https://logodownload.org/wp-content/uploads/2019/12/ceara-logo.png",
-            "Fortaleza": "https://logodownload.org/wp-content/uploads/2019/12/fortaleza-logo.png",
-            "Figueirense": "https://logodownload.org/wp-content/uploads/2019/12/figueirense-logo.png",
-            
-            // Times internacionais
-            "Brasil": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/1200px-Flag_of_Brazil.svg.png",
-            "Argentina": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Flag_of_Argentina.svg/1200px-Flag_of_Argentina.svg.png",
-            "França": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_France.svg/1200px-Flag_of_France.svg.png",
-            "Alemanha": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1200px-Flag_of_Germany.svg.png",
-            "PSG": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/1200px-Paris_Saint-Germain_F.C..svg.png",
-            "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/1200px-Real_Madrid_CF.svg.png",
-            "Barcelona": "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_%28crest%29.svg/1200px-FC_Barcelona_%28crest%29.svg.png",
-            "Manchester United": "https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Manchester_United_FC_crest.svg/1200px-Manchester_United_FC_crest.svg.png",
-            "Liverpool": "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/1200px-Liverpool_FC.svg.png",
-            "Bayern Munich": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/1200px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
-            
-            // Vôlei
-            "Sada Cruzeiro": "https://upload.wikimedia.org/wikipedia/pt/thumb/5/5e/Sada_Cruzeiro_Volei.png/1200px-Sada_Cruzeiro_Volei.png",
-            "Minas": "https://upload.wikimedia.org/wikipedia/pt/thumb/2/2e/Minas_T%C3%AAnis_Clube.png/1200px-Minas_T%C3%AAnis_Clube.png",
-            "TAU": "https://upload.wikimedia.org/wikipedia/pt/thumb/1/1e/Taubat%C3%A9_VC.png/1200px-Taubat%C3%A9_VC.png",
-            
-            // Basquete
-            "Flamengo Basquete": "https://upload.wikimedia.org/wikipedia/pt/thumb/f/f7/Flamengo_logo.svg/1200px-Flamengo_logo.svg.png",
-            "São Paulo Basquete": "https://upload.wikimedia.org/wikipedia/pt/thumb/2/2e/Sao_Paulo_FC_logo.svg/1200px-Sao_Paulo_FC_logo.svg.png",
-            
-            // NBA
-            "Lakers": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Los_Angeles_Lakers_logo.svg/1200px-Los_Angeles_Lakers_logo.svg.png",
-            "Warriors": "https://upload.wikimedia.org/wikipedia/en/thumb/0/01/Golden_State_Warriors_logo.svg/1200px-Golden_State_Warriors_logo.svg.png",
-            "Bulls": "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/Chicago_Bulls_logo.svg/1200px-Chicago_Bulls_logo.svg.png",
-            
-            // UFC (para eventos de MMA)
-            "UFC": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/UFC_Logo.svg/1200px-UFC_Logo.svg.png"
-        };
-
-        // Imagens de lutadores do UFC
-        const lutadoresUFC = {
-            "Gilbert Burns": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-03/BURNS_GILBERT_L_BELTON_03_04.png",
-            "Rodolfo Bellato": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-11/BELLATO_RODOLFO_L_11-04.png",
-            "Mairon Santos": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2024-01/SANTOS_MAIRON_L_01-20.png",
-            "Luana Santos": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-06/SANTOS_LUANA_L_06-03.png",
-            "Luana Pinheiro": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-05/PINHEIRO_LUANA_L_05-06.png",
-            "Sean O'Malley": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-08/OMALLEY_SEAN_L_08-19.png",
-            "Israel Adesanya": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-09/ADESANYA_ISRAEL_L_09-09.png",
-            "Jon Jones": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2023-03/JONES_JON_L_03-04.png",
-            "Anderson Silva": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2020-07/SILVA_ANDERSON_L_07-11.png",
-            "Vitor Belfort": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2018-05/BELFORT_VITOR_L_05-12.png",
-            "José Aldo": "https://dmxg5wxfqgb4u.cloudfront.net/styles/athlete_bio_full_body/s3/2022-08/ALDO_JOSE_L_08-20.png"
         };
 
         // Classificação indicativa
@@ -875,9 +676,6 @@
             const modalScheduleList = document.getElementById('modal-schedule-list');
             const currentTimeDisplay = document.getElementById('current-time-display');
             const lastUpdateDisplay = document.getElementById('last-update');
-            const verProximoDiaBtn = document.getElementById('ver-proximo-dia');
-            const verHojeBtn = document.getElementById('ver-hoje');
-            const verDiaAnteriorBtn = document.getElementById('ver-dia-anterior');
             const backToTopButton = document.getElementById('back-to-top');
             const trailerModal = document.getElementById('trailer-modal');
             const trailerClose = document.querySelector('.trailer-close');
@@ -893,14 +691,11 @@
             
             // Filtros
             const filterButtons = document.querySelectorAll('.filter-btn');
-            const filterEsporteButtons = document.querySelectorAll('.filter-esporte');
             
             // Variáveis de estado
             let allProgrammesByChannel = {};
             let autoUpdateTimer = null;
             const AUTO_UPDATE_INTERVAL = 60000; // 1 minuto
-            let currentSportFilter = 'Futebol';
-            let currentDayOffset = 0;
             let favoriteChannels = JSON.parse(localStorage.getItem('favoriteChannels')) || {};
             const trailerCache = JSON.parse(localStorage.getItem('trailerCache')) || {};
             
@@ -946,7 +741,6 @@
             
             fetchEPGData();
             carregarFilmes();
-            carregarEventosEsportivos();
             
             // Event Listeners
             channelSearch.addEventListener('input', handleSearch);
@@ -966,28 +760,6 @@
                 });
             });
             
-            filterEsporteButtons.forEach(button => {
-                button.addEventListener('click', handleSportFilterClick);
-            });
-            
-            verProximoDiaBtn.addEventListener('click', () => {
-                currentDayOffset++;
-                updateDayNavigationButtons();
-                carregarEventosEsportivos();
-            });
-            
-            verHojeBtn.addEventListener('click', () => {
-                currentDayOffset = 0;
-                updateDayNavigationButtons();
-                carregarEventosEsportivos();
-            });
-            
-            verDiaAnteriorBtn.addEventListener('click', () => {
-                currentDayOffset--;
-                updateDayNavigationButtons();
-                carregarEventosEsportivos();
-            });
-            
             // Funções principais
             function updateCurrentTime() {
                 const now = new Date();
@@ -996,19 +768,6 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
-            }
-            
-            function updateDayNavigationButtons() {
-                if (currentDayOffset > 0) {
-                    verDiaAnteriorBtn.classList.remove('hidden');
-                    verHojeBtn.classList.remove('hidden');
-                } else if (currentDayOffset < 0) {
-                    verDiaAnteriorBtn.classList.remove('hidden');
-                    verHojeBtn.classList.remove('hidden');
-                } else {
-                    verDiaAnteriorBtn.classList.add('hidden');
-                    verHojeBtn.classList.add('hidden');
-                }
             }
             
             function handleSearch(e) {
@@ -1044,7 +803,6 @@
                 
                 fetchEPGData();
                 carregarFilmes();
-                carregarEventosEsportivos();
             }
             
             function handleFilterClick() {
@@ -1117,15 +875,6 @@
                     
                     item.style.display = showItem ? 'block' : 'none';
                 });
-            }
-            
-            function handleSportFilterClick() {
-                filterEsporteButtons.forEach(btn => btn.classList.remove('bg-orange-600'));
-                this.classList.add('bg-orange-600');
-                currentSportFilter = this.dataset.esporte;
-                currentDayOffset = 0;
-                updateDayNavigationButtons();
-                carregarEventosEsportivos();
             }
             
             function fetchEPGData() {
@@ -1830,351 +1579,6 @@
                 }
                 
                 return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
-            }
-            
-            // Funções auxiliares para eventos esportivos
-            function formatarDataHoraCompleta(date) {
-                const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-                const dia = date.getDate().toString().padStart(2, '0');
-                const mes = (date.getMonth() + 1).toString().padStart(2, '0');
-                const hora = date.getHours().toString().padStart(2, '0');
-                const diaSemana = diasSemana[date.getDay()];
-                
-                return `${dia}/${mes} ${hora}h (${diaSemana})`;
-            }
-            
-            function getStatusEvento(dataEvento, agora) {
-                const inicio = new Date(dataEvento);
-                const fim = new Date(inicio);
-                fim.setHours(fim.getHours() + 2); // Assumindo duração de 2 horas
-                
-                if (inicio <= agora && fim > agora) return 'live';
-                if (inicio > agora && (inicio - agora) <= (5 * 60 * 60 * 1000)) return 'soon';
-                return 'upcoming';
-            }
-            
-            function corrigirNomeTime(nome) {
-                const correcoes = {
-                    "VT-": "",
-                    "brasil": "Brasil",
-                    "vitorias": "Vitória",
-                    "fla": "Flamengo",
-                    "flu": "Fluminense",
-                    "bot": "Botafogo",
-                    "cor": "Corinthians",
-                    "pal": "Palmeiras",
-                    "spfc": "São Paulo",
-                    "san": "Santos",
-                    "campeonato": "",
-                    "brasileiro": "",
-                    "libertadores": ""
-                };
-                
-                let nomeCorrigido = nome;
-                for (const [erro, correcao] of Object.entries(correcoes)) {
-                    nomeCorrigido = nomeCorrigido.replace(new RegExp(erro, 'gi'), correcao);
-                }
-                
-                // Capitalizar primeira letra
-                nomeCorrigido = nomeCorrigido.trim();
-                if (nomeCorrigido.length > 0) {
-                    nomeCorrigido = nomeCorrigido.charAt(0).toUpperCase() + nomeCorrigido.slice(1).toLowerCase();
-                }
-                
-                return nomeCorrigido || "Time desconhecido";
-            }
-            
-            function normalizarEsporte(titulo, desc) {
-                const texto = (titulo + desc).toLowerCase();
-                
-                if (/(futebol|brasileiro|brasileirão|paulista|carioca|libertadores|laliga|champions)/i.test(texto)) {
-                    return "Futebol";
-                }
-                if (/(ufc|mma|luta|mixed martial arts)/i.test(texto)) {
-                    return "UFC";
-                }
-                if (/box/i.test(texto)) {
-                    return "Boxe";
-                }
-                if (/(volei|vôlei)/i.test(texto)) {
-                    return "Vôlei";
-                }
-                if (/(nba|basquete)/i.test(texto)) {
-                    return "Basquete";
-                }
-                return "Outros Esportes";
-            }
-            
-            function extrairTimes(titulo) {
-                // Primeiro tenta encontrar padrão com "x" ou "vs"
-                const regexPadrao = /(.+?)\s+(?:vs|x|×)\s+(.+)/i;
-                const matchPadrao = titulo.match(regexPadrao);
-                if (matchPadrao) {
-                    return [corrigirNomeTime(matchPadrao[1]), corrigirNomeTime(matchPadrao[2])];
-                }
-                
-                // Se não encontrar, tenta dividir por hífen
-                const partes = titulo.split(/[-–]/);
-                if (partes.length >= 2) {
-                    return [corrigirNomeTime(partes[0]), corrigirNomeTime(partes[1])];
-                }
-                
-                // Se não conseguir, retorna o título original
-                return [corrigirNomeTime(titulo), ""];
-            }
-            
-            function getLogoCanalEsportivo(canalNome) {
-                for (const [canal, logo] of Object.entries(logosCanaisEsportivos)) {
-                    if (canalNome.includes(canal)) return logo;
-                }
-                return null;
-            }
-            
-            function criarCardEvento(evento) {
-                // Função auxiliar para encontrar o escudo mais adequado
-                const encontrarEscudo = (nomeTime) => {
-                    // Primeiro verifica se temos um escudo exato
-                    if (escudos[nomeTime]) return escudos[nomeTime];
-                    
-                    // Se não, procura por correspondência parcial
-                    for (const [time, escudo] of Object.entries(escudos)) {
-                        if (nomeTime.toLowerCase().includes(time.toLowerCase())) {
-                            return escudo;
-                        }
-                    }
-                    
-                    // Se não encontrar, usa um placeholder
-                    return `https://via.placeholder.com/80?text=${encodeURIComponent(nomeTime.substring(0, 2))}`;
-                };
-
-                const escudo1 = encontrarEscudo(evento.time1);
-                const escudo2 = encontrarEscudo(evento.time2);
-                const dataHora = formatarDataHoraCompleta(evento.data);
-                const logoCanal = getLogoCanalEsportivo(evento.canal);
-                
-                const card = document.createElement("div");
-                card.className = "sport-event-card";
-                
-                // Adiciona classes baseadas no status
-                if (evento.status === 'live') {
-                    card.classList.add("live");
-                } else if (evento.status === 'soon') {
-                    card.classList.add("soon");
-                }
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-bold text-orange-500">${evento.esporte}</span>
-                        <span class="text-xs text-gray-400">${dataHora}</span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="${escudo1}" alt="${evento.time1}" class="h-10 w-10 object-contain mb-1" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=${encodeURIComponent(evento.time1.substring(0, 2))}'">
-                            <span class="text-sm text-center text-white">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
-                        </div>
-                        <div class="text-xl font-bold text-white mx-2">X</div>
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="${escudo2}" alt="${evento.time2}" class="h-10 w-10 object-contain mb-1" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=${encodeURIComponent(evento.time2.substring(0, 2))}'">
-                            <span class="text-sm text-center text-white">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-center gap-2">
-                        ${logoCanal ? `<img src="${logoCanal}" alt="${evento.canal}" class="h-4">` : ''}
-                        <span class="text-xs text-gray-300">${evento.canal}</span>
-                        ${evento.status === 'live' ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
-                        ${evento.status === 'soon' ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
-                    </div>
-                `;
-                
-                return card;
-            }
-            
-            function criarCardEventoMMA(evento) {
-                // Função para encontrar a imagem do lutador
-                const encontrarImagemLutador = (nomeLutador) => {
-                    // Procura pelo lutador (com tolerância a variações no nome)
-                    for (const [nome, img] of Object.entries(lutadoresUFC)) {
-                        if (nomeLutador.toLowerCase().includes(nome.toLowerCase())) {
-                            return img;
-                        }
-                    }
-                    
-                    // Se não encontrar, usa um placeholder genérico
-                    return `https://via.placeholder.com/150?text=${encodeURIComponent(nomeLutador.substring(0, 1))}`;
-                };
-
-                const imagemLutador1 = encontrarImagemLutador(evento.time1);
-                const imagemLutador2 = encontrarImagemLutador(evento.time2);
-                const dataHora = formatarDataHoraCompleta(evento.data);
-                const logoCanal = getLogoCanalEsportivo(evento.canal);
-                
-                const card = document.createElement("div");
-                card.className = "sport-event-card mma";
-                
-                // Adiciona classes baseadas no status
-                if (evento.status === 'live') {
-                    card.classList.add("live");
-                } else if (evento.status === 'soon') {
-                    card.classList.add("soon");
-                }
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-bold text-orange-500">${evento.esporte}</span>
-                        <span class="text-xs text-gray-400">${dataHora}</span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="${imagemLutador1}" alt="${evento.time1}" class="fighter-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/150?text=${encodeURIComponent(evento.time1.substring(0, 1))}'">
-                            <span class="fighter-name">${evento.time1.length > 12 ? evento.time1.substring(0, 10) + '...' : evento.time1}</span>
-                            <span class="fighter-nickname">${evento.time1.includes(' ') ? evento.time1.split(' ')[1] : ''}</span>
-                        </div>
-                        <div class="text-xl font-bold text-white mx-2">VS</div>
-                        <div class="flex flex-col items-center w-1/3">
-                            <img src="${imagemLutador2}" alt="${evento.time2}" class="fighter-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/150?text=${encodeURIComponent(evento.time2.substring(0, 1))}'">
-                            <span class="fighter-name">${evento.time2.length > 12 ? evento.time2.substring(0, 10) + '...' : evento.time2}</span>
-                            <span class="fighter-nickname">${evento.time2.includes(' ') ? evento.time2.split(' ')[1] : ''}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-center gap-2">
-                        ${logoCanal ? `<img src="${logoCanal}" alt="${evento.canal}" class="h-4">` : ''}
-                        <span class="text-xs text-gray-300">${evento.canal}</span>
-                        ${evento.status === 'live' ? '<span class="live-indicator ml-2">AO VIVO</span>' : ''}
-                        ${evento.status === 'soon' ? '<span class="soon-indicator ml-2">EM BREVE</span>' : ''}
-                    </div>
-                `;
-                
-                return card;
-            }
-            
-            async function carregarEventosEsportivos() {
-                const container = document.getElementById("jogos-container");
-                container.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-                
-                try {
-                    const eventosMap = new Map();
-                    const now = new Date();
-                    
-                    for (const url of sportEventsUrls) {
-                        const res = await fetch(url);
-                        const xmlText = await res.text();
-                        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-                        
-                        Array.from(xml.getElementsByTagName("programme")).forEach(prog => {
-                            const titulo = prog.getElementsByTagName("title")[0]?.textContent || "";
-                            const desc = prog.getElementsByTagName("desc")[0]?.textContent || "";
-                            const canal = prog.getAttribute("channel") || "";
-                            
-                            // Verifica se é um canal esportivo
-                            const isCanalEsportivo = canaisEsportivos.some(c => canal.includes(c));
-                            if (!isCanalEsportivo) return;
-                            
-                            // Verifica se parece ser um evento esportivo (contém times ou palavras-chave)
-                            const isEventoEsportivo = /(vs|x|×|jogo|partida|campeonato|liga|luta|ufc|mma)/i.test(titulo + desc);
-                            if (!isEventoEsportivo) return;
-                            
-                            const inicio = prog.getAttribute("start");
-                            const data = new Date(
-                                parseInt(inicio.slice(0, 4)),
-                                parseInt(inicio.slice(4, 6)) - 1,
-                                parseInt(inicio.slice(6, 8)),
-                                parseInt(inicio.slice(8, 10)),
-                                parseInt(inicio.slice(10, 12))
-                            );
-                            
-                            // Ajustar para o dia selecionado
-                            const hoje = new Date();
-                            hoje.setDate(hoje.getDate() + currentDayOffset);
-                            hoje.setHours(0, 0, 0, 0);
-                            
-                            const amanha = new Date(hoje);
-                            amanha.setDate(amanha.getDate() + 1);
-                            
-                            if (data < hoje || data >= amanha) return;
-                            
-                            // Determina o esporte
-                            const esporte = normalizarEsporte(titulo, desc);
-                            
-                            // Filtra por esporte selecionado
-                            if (currentSportFilter !== "Futebol" && esporte !== currentSportFilter) return;
-                            
-                            // Extrai os participantes
-                            let [time1, time2] = extrairTimes(titulo);
-                            
-                            // Para UFC/MMA, ajusta os nomes
-                            if (esporte === "UFC") {
-                                // Tenta extrair os nomes dos lutadores
-                                const lutadores = titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
-                                                 titulo.match(/(.+?)\s+(?:vs|x|×)\s+(.+)/i) || 
-                                                 [null, time1, time2];
-                                time1 = lutadores[1] || time1;
-                                time2 = lutadores[2] || time2;
-                            }
-                            
-                            if (!time1 || !time2) return;
-                            
-                            // Determina o status do evento
-                            const status = getStatusEvento(data, now);
-                            
-                            // Cria o objeto do evento
-                            const evento = {
-                                titulo, 
-                                data, 
-                                time1, 
-                                time2, 
-                                esporte,
-                                canal,
-                                status
-                            };
-                            
-                            // Adiciona ao mapa (evita duplicatas)
-                            eventosMap.set(`${time1}-${time2}-${data.getTime()}`, evento);
-                        });
-                    }
-                    
-                    container.innerHTML = "";
-                    const eventos = Array.from(eventosMap.values())
-                        .sort((a, b) => a.data - b.data);
-                    
-                    if (eventos.length === 0) {
-                        container.innerHTML = `<p class="text-gray-400 text-center py-4">Nenhum evento encontrado para ${currentSportFilter}</p>`;
-                        return;
-                    }
-                    
-                    // Agrupa por data
-                    const eventosPorData = {};
-                    eventos.forEach(evento => {
-                        const dataKey = evento.data.toLocaleDateString('pt-BR');
-                        if (!eventosPorData[dataKey]) {
-                            eventosPorData[dataKey] = [];
-                        }
-                        eventosPorData[dataKey].push(evento);
-                    });
-                    
-                    // Adiciona cabeçalho de data e os cards
-                    for (const [dataStr, eventosDaData] of Object.entries(eventosPorData)) {
-                        const dataHeader = document.createElement("div");
-                        dataHeader.className = "text-vibrant-orange font-bold text-sm mb-2 mt-4 w-full";
-                        dataHeader.textContent = `📅 ${dataStr}`;
-                        container.appendChild(dataHeader);
-                        
-                        eventosDaData.forEach(evento => {
-                            // Decide qual tipo de card usar baseado no esporte
-                            if (evento.esporte === "UFC") {
-                                container.appendChild(criarCardEventoMMA(evento));
-                            } else {
-                                container.appendChild(criarCardEvento(evento));
-                            }
-                        });
-                    }
-                } catch (error) {
-                    console.error("Erro ao carregar eventos esportivos:", error);
-                    container.innerHTML = `<p class="text-red-400 text-center py-4">Erro ao carregar eventos</p>`;
-                }
             }
         });
     </script>
