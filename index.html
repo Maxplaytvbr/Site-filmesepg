@@ -793,6 +793,75 @@
                 fetchEPGData();
                 carregarFilmes();
             }
+// ======= LEMBRETES DE FILMES =======
+
+// Verifica lembretes armazenados a cada minuto
+setInterval(verificarLembretes, 60000);
+verificarLembretes(); // Executa imediatamente ao carregar
+
+// Solicita permissão ao carregar
+if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
+// Função chamada ao clicar em "Ativar Lembrete"
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("lembrete-btn")) {
+        const titulo = e.target.dataset.titulo;
+        const inicio = e.target.dataset.inicio; // formato: YYYYMMDDHHMMSS
+
+        const horaNotificacao = calcularHoraNotificacao(inicio);
+        if (!horaNotificacao) return;
+
+        const lembretes = JSON.parse(localStorage.getItem("lembretesFilmes") || "{}");
+        lembretes[inicio] = { titulo, inicio, notificarEm: horaNotificacao };
+        localStorage.setItem("lembretesFilmes", JSON.stringify(lembretes));
+
+        e.target.textContent = "🔔 Lembrete Ativado";
+        e.target.disabled = true;
+        e.target.classList.add("opacity-70");
+    }
+});
+
+// Calcula data/hora da notificação (5 minutos antes)
+function calcularHoraNotificacao(inicioStr) {
+    try {
+        const ano = parseInt(inicioStr.slice(0, 4));
+        const mes = parseInt(inicioStr.slice(4, 6)) - 1;
+        const dia = parseInt(inicioStr.slice(6, 8));
+        const hora = parseInt(inicioStr.slice(8, 10));
+        const minuto = parseInt(inicioStr.slice(10, 12));
+        const data = new Date(ano, mes, dia, hora, minuto);
+        data.setMinutes(data.getMinutes() - 5);
+        return data.toISOString();
+    } catch {
+        return null;
+    }
+}
+
+// Verifica se há lembretes para notificar
+function verificarLembretes() {
+    const lembretes = JSON.parse(localStorage.getItem("lembretesFilmes") || "{}");
+    const agora = new Date().toISOString();
+    const atualizados = {};
+
+    for (const [inicio, info] of Object.entries(lembretes)) {
+        if (info.notificarEm <= agora) {
+            if (Notification.permission === "granted") {
+                new Notification("🎬 MaxPlay TV", {
+                    body: `Faltam 5 minutos para começar: ${info.titulo}`,
+                    icon: "https://i.postimg.cc/BvbCr0jH/IMG-6850.png"
+                });
+            }
+        } else {
+            atualizados[inicio] = info;
+        }
+    }
+
+    localStorage.setItem("lembretesFilmes", JSON.stringify(atualizados));
+}
+// ====== FIM DOS LEMBRETES ======
+
             
             function handleFilterClick() {
                 filterButtons.forEach(btn => {
