@@ -41,5 +41,9 @@ const passwordInput = document.getElementById('password');
 togglePassword.addEventListener('click', () => {
     const isHidden = passwordInput.type === 'password';
     passwordInput.type = isHidden ? 'text' : 'password';
-    togglePassword.textContent = isHidden ? '🙈' : '👁️';
+    const eyeIcon = document.getElementById('eye-icon');
+    eyeIcon.src = isHidden
+        ? "https://www.svgrepo.com/show/510931/eye-off.svg"
+        : "https://www.svgrepo.com/show/510930/eye.svg";
+    
 });
