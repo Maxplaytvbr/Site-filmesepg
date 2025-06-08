@@ -1,28 +1,31 @@
 document.getElementById("toggle-password").addEventListener("change", function () {
     const passwordInput = document.getElementById("password");
-    passwordInput.type = this.checked ? "text" : "password";
+    if (this.checked) {
+        passwordInput.type = "text";
+    } else {
+        passwordInput.type = "password";
+    }
 });
 
 document.getElementById("login-form").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    const username = document.getElementById("username").value.trim().toLowerCase();
-    const password = document.getElementById("password").value.trim().toLowerCase();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
     const remember = document.getElementById("remember").checked;
     const errorMsg = document.getElementById("error-msg");
 
-    const validValues = ["maxplay", "apoly", "apoli"];
-
-    if (validValues.includes(username) && validValues.includes(password)) {
+    // Simulação de validação (substituir pela lógica real)
+    if (username === "admin" && password === "1234") {
         errorMsg.textContent = "";
-        // Redirecionamento para o site
-        window.location.href = "https://maxplaytvbr.github.io/Site-filmesepg/";
+        alert("Login bem-sucedido!");
+        // Redirecionar ou continuar lógica aqui
     } else {
         errorMsg.textContent = "Usuário ou senha incorretos.";
     }
 
     if (remember) {
-        localStorage.setItem("savedUsername", document.getElementById("username").value.trim());
+        localStorage.setItem("savedUsername", username);
     } else {
         localStorage.removeItem("savedUsername");
     }
