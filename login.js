@@ -15,8 +15,8 @@ document.getElementById("login-form").addEventListener("submit", function (e) {
 
     if (validValues.includes(username) && validValues.includes(password)) {
         errorMsg.textContent = "";
-        alert("Login bem-sucedido!");
-        // Redirecionar ou executar ações adicionais
+        // Redirecionamento para o site
+        window.location.href = "https://maxplaytvbr.github.io/Site-filmesepg/";
     } else {
         errorMsg.textContent = "Usuário ou senha incorretos.";
     }
