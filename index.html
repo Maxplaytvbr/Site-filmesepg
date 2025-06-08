@@ -239,6 +239,17 @@
             border: none;
         }
         
+        .trailer-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 101;
+        }
+        
         .trailer-not-found {
             padding: 40px;
             text-align: center;
@@ -611,12 +622,12 @@
 
         // Classificação indicativa
         const ratingImages = {
-            'L': 'https://i.postimg.cc/ZRcPMmQF/IMG-7033.png',
-            '10': 'https://i.postimg.cc/NGd78gmQ/IMG-7031.png',
-            '12': 'https://i.postimg.cc/Wz1mRKLR/IMG-7032.png',
-            '14': 'https://i.postimg.cc/Xq1fn84r/IMG-7030.png',
-            '16': 'https://i.postimg.cc/3JWjnPFm/IMG-7028.png',
-            '18': 'https://i.postimg.cc/PrcWc2Sc/IMG-7034.png'
+            'L': 'https://i.postimg.cc/7PnzwZp7/IMG-6891.png',
+            '10': 'https://i.postimg.cc/FzpkZTjG/IMG-6892.png',
+            '12': 'https://i.postimg.cc/LXz1q95c/IMG-6893.png',
+            '14': 'https://i.postimg.cc/sxsZ7kZv/IMG-6894.png',
+            '16': 'https://i.postimg.cc/wvKNTyq5/IMG-6895.png',
+            '18': 'https://i.postimg.cc/LsgfpBp6/IMG-6896.png'
         };
         
         // Dias da semana abreviados
@@ -1472,16 +1483,6 @@
                     "Cinemax", "Telecine Touch", "Paramount", "Telecine Fun"
                 ];
                 
-                // Mapeamento de classificação indicativa para imagens
-                const ratingImages = {
-                    'L': 'https://i.postimg.cc/ZRcPMmQF/IMG-7033.png',
-                    '10': 'https://i.postimg.cc/NGd78gmQ/IMG-7031.png',
-                    '12': 'https://i.postimg.cc/Wz1mRKLR/IMG-7032.png',
-                    '14': 'https://i.postimg.cc/Xq1fn84r/IMG-7030.png',
-                    '16': 'https://i.postimg.cc/3JWjnPFm/IMG-7028.png',
-                    '18': 'https://i.postimg.cc/PrcWc2Sc/IMG-7034.png'
-                };
-
                 try {
                     const response = await fetch(epgXmlUrl);
                     const xmlText = await response.text();
@@ -1517,21 +1518,15 @@
                                     parseInt(start.slice(10, 12))
                                 );
                                 
-                                // Filtra para incluir apenas filmes (exclui séries, programas, etc.)
-                                const title = p.getElementsByTagName("title")[0]?.textContent || "";
-                                const isMovie = !title.match(/(EP\.|Episódio|Série|Temporada|Programa|Show|Novela)/i);
-                                
                                 return channel.toLowerCase().includes(canal.toLowerCase()) &&
                                        start.startsWith(dia) &&
-                                       startTime >= new Date() && // Só mostra programas futuros
-                                       isMovie; // Apenas filmes
+                                       startTime >= new Date(); // Só mostra programas futuros
                             });
                             
                             for (const filme of programasDoCanal) {
                                 const titleRaw = filme.getElementsByTagName("title")[0]?.textContent || "Sem título";
                                 const titleClean = normalizarTitulo(titleRaw);
                                 
-                                // Verifica se o título já foi adicionado e se não contém "EP" ou "Episódio"
                                 if (titulosUnicos.has(titleClean)) continue;
                                 
                                 const img = await buscarImagemFilme(titleRaw);
@@ -1542,34 +1537,13 @@
                                 const channel = filme.getAttribute("channel");
                                 const start = filme.getAttribute("start");
                                 const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
-                                
-                                // Formata a data completa para exibição
                                 const dataExibicao = new Date(
                                     parseInt(start.slice(0, 4)),
                                     parseInt(start.slice(4, 6)) - 1,
                                     parseInt(start.slice(6, 8))
                                 );
                                 const diaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][dataExibicao.getDay()];
-                                const diaMes = dataExibicao.getDate().toString().padStart(2, '0');
-                                const mes = (dataExibicao.getMonth() + 1).toString().padStart(2, '0');
-                                const dataFormatada = `${diaMes}/${mes}`;
-                                
-                                // Obter classificação indicativa
-                                let rating = "L";
-                                const ratingElement = filme.getElementsByTagName("rating")[0];
-                                if (ratingElement) {
-                                    const valueElement = ratingElement.getElementsByTagName("value")[0];
-                                    if (valueElement) {
-                                        rating = valueElement.textContent;
-                                        // Normaliza a classificação
-                                        if (rating.includes('LIVRE') || rating === 'L') rating = 'L';
-                                        else if (rating.includes('10') || rating.includes('DEZ')) rating = '10';
-                                        else if (rating.includes('12') || rating.includes('DOZE')) rating = '12';
-                                        else if (rating.includes('14') || rating.includes('QUATORZE')) rating = '14';
-                                        else if (rating.includes('16') || rating.includes('DEZESSEIS')) rating = '16';
-                                        else if (rating.includes('18') || rating.includes('DEZOITO')) rating = '18';
-                                    }
-                                }
+                                const rating = filme.getElementsByTagName("rating")[0]?.textContent || "L";
                                 
                                 // Obter logo do canal
                                 let channelLogo = '';
@@ -1579,9 +1553,6 @@
                                         break;
                                     }
                                 }
-                                
-                                // Obter imagem da classificação indicativa
-                                const ratingImg = ratingImages[rating] || ratingImages['L'];
                                 
                                 const card = document.createElement("div");
                                 card.className = "movie-card";
@@ -1593,12 +1564,10 @@
                                             ${channelLogo}
                                             <p class="text-xs text-gray-300">${channel}</p>
                                         </div>
-                                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">${diaSemana} ${dataFormatada}</span>
+                                        <span class="text-xs bg-gray-700 px-2 py-1 rounded">${diaSemana}</span>
                                     </div>
-                                    <div class="flex items-center justify-between mt-1">
-                                        <p class="text-xs text-gray-300">Horário: ${horario}</p>
-                                        <img src="${ratingImg}" alt="Classificação ${rating}" class="h-4">
-                                    </div>
+                                    <p class="text-xs text-gray-300">Horário: ${horario}</p>
+                                    <p class="text-xs text-yellow-400">Classificação: ${rating}</p>
                                     <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
                                         Ver Trailer
                                     </button>
