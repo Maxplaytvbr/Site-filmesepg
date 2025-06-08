@@ -420,6 +420,12 @@
     color: white !important; 
     border-bottom: 2px solid white; 
 }
+
+
+/* Torna os botões de lembrete clicáveis */
+.lembrete-btn {
+    cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -652,6 +658,20 @@
 
         // Inicialização quando o DOM estiver pronto
         document.addEventListener('DOMContentLoaded', () => {
+// Força permissão de notificação ao carregar
+if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+        console.log("Permissão de notificação:", permission);
+    });
+}
+
+// Alerta de teste para clique
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("lembrete-btn")) {
+        alert("✅ Clique detectado no botão de lembrete!");
+    }
+});
+
             // Elementos da interface
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error-message');
