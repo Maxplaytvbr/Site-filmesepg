@@ -1,41 +1,36 @@
-document.getElementById("toggle-password").addEventListener("change", function () {
-    const passwordInput = document.getElementById("password");
-    if (this.checked) {
-        passwordInput.type = "text";
-    } else {
-        passwordInput.type = "password";
-    }
-});
 
-document.getElementById("login-form").addEventListener("submit", function (e) {
+const form = document.getElementById('login-form');
+const errorMsg = document.getElementById('error-msg');
+const rememberBox = document.getElementById('remember');
+
+// Usuários permitidos
+const allowedUsers = ["Maxplay", "maxplay", "Apoli", "apoli"];
+
+// Preencher automaticamente se tiver no localStorage
+window.onload = () => {
+    const saved = localStorage.getItem("maxplay-login");
+    if (saved) {
+        const { user, pass } = JSON.parse(saved);
+        document.getElementById('username').value = user;
+        document.getElementById('password').value = pass;
+        rememberBox.checked = true;
+    }
+};
+
+form.addEventListener('submit', (e) => {
     e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const remember = document.getElementById("remember").checked;
-    const errorMsg = document.getElementById("error-msg");
-
-    // Simulação de validação (substituir pela lógica real)
-    if (username === "admin" && password === "1234") {
-        errorMsg.textContent = "";
-        alert("Login bem-sucedido!");
-        // Redirecionar ou continuar lógica aqui
+    if (username === password && allowedUsers.includes(username)) {
+        if (rememberBox.checked) {
+            localStorage.setItem("maxplay-login", JSON.stringify({ user: username, pass: password }));
+        } else {
+            localStorage.removeItem("maxplay-login");
+        }
+        localStorage.setItem("loggedIn", "true");
+        window.location.href = "index.html";
     } else {
-        errorMsg.textContent = "Usuário ou senha incorretos.";
-    }
-
-    if (remember) {
-        localStorage.setItem("savedUsername", username);
-    } else {
-        localStorage.removeItem("savedUsername");
-    }
-});
-
-// Carregar usuário salvo
-window.addEventListener("load", function () {
-    const savedUsername = localStorage.getItem("savedUsername");
-    if (savedUsername) {
-        document.getElementById("username").value = savedUsername;
-        document.getElementById("remember").checked = true;
+        errorMsg.textContent = "Usuário ou senha inválidos.";
     }
 });

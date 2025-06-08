@@ -1,3 +1,4 @@
+
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
@@ -63,16 +64,6 @@ button:hover {
     justify-content: flex-start;
 }
 .remember input {
-    margin-right: 8px;
-}
-.show-password {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
-    justify-content: flex-start;
-}
-.show-password input {
     margin-right: 8px;
 }
 .error-message {
