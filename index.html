@@ -22,6 +22,7 @@
                         'dark-blue': '#0f172a',
                         'vibrant-orange': '#ff6b00',
                         'favorite-yellow': '#facc15',
+                        'reminder-yellow': '#fde047',
                     },
                     fontFamily: {
                         'sans': ['Poppins', 'sans-serif'],
@@ -391,6 +392,28 @@
             vertical-align: middle;
         }
         
+        /* Botão de lembrete */
+        .reminder-btn {
+            background-color: #fde047;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+        
+        .reminder-btn:hover {
+            background-color: #facc15;
+            transform: translateY(-1px);
+        }
+        
+        /* Toast de confirmação */
+        .reminder-toast {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         /* Responsividade */
         @media (max-width: 640px) {
             .filters-container {
@@ -414,12 +437,11 @@
             }
         }
     
-
-.filter-btn.active { 
-    background-color: #ff6b00 !important; 
-    color: white !important; 
-    border-bottom: 2px solid white; 
-}
+        .filter-btn.active { 
+            background-color: #ff6b00 !important; 
+            color: white !important; 
+            border-bottom: 2px solid white; 
+        }
 </style>
 </head>
 <body>
@@ -687,69 +709,101 @@
             const AUTO_UPDATE_INTERVAL = 60000; // 1 minuto
             let favoriteChannels = JSON.parse(localStorage.getItem('favoriteChannels')) || {};
             const trailerCache = JSON.parse(localStorage.getItem('trailerCache')) || {};
+            let reminders = JSON.parse(localStorage.getItem('filmReminders')) || {};
             
-            // Inicialização
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000);
+            // =============================================
+            // SISTEMA DE LEMBRETES
+            // =============================================
             
-            // Configurar botão voltar ao topo
-            window.addEventListener('scroll', () => {
-                if (window.pageYOffset > 300) {
-                    backToTopButton.classList.remove('hidden');
-                } else {
-                    backToTopButton.classList.add('hidden');
+            // Pedir permissão para notificações
+            function requestNotificationPermission() {
+                if ('Notification' in window) {
+                    Notification.requestPermission().then(permission => {
+                        console.log('Permissão para notificações:', permission);
+                    });
                 }
-            });
+            }
             
-            backToTopButton.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
+            // Função para adicionar lembrete
+            function addReminder(movieTitle, channel, startTime) {
+                const reminderId = `${movieTitle}-${startTime}`;
+                reminders[reminderId] = {
+                    title: movieTitle,
+                    channel: channel,
+                    time: startTime,
+                    notified: false
+                };
+                localStorage.setItem('filmReminders', JSON.stringify(reminders));
+                
+                // Mostrar feedback visual
+                showToast(`Lembrete definido para "${movieTitle}"`);
+            }
             
-            // Configurar modal de trailer
-            trailerClose.addEventListener('click', () => {
-                trailerModal.style.display = 'none';
-                // Remove o iframe quando o modal é fechado
-                const iframe = trailerContainer.querySelector('iframe');
-                if (iframe) {
-                    iframe.remove();
-                }
-                trailerNotFound.classList.add('hidden');
-            });
+            // Mostrar toast de confirmação
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg reminder-toast z-50';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
             
-            window.addEventListener('click', (event) => {
-                if (event.target === trailerModal) {
-                    trailerModal.style.display = 'none';
-                    // Remove o iframe quando o modal é fechado
-                    const iframe = trailerContainer.querySelector('iframe');
-                    if (iframe) {
-                        iframe.remove();
-                    }
-                    trailerNotFound.classList.add('hidden');
-                }
-            });
-            
-            fetchEPGData();
-            carregarFilmes();
-            
-            // Event Listeners
-            channelSearch.addEventListener('input', handleSearch);
-            reloadButton.addEventListener('click', handleReload);
-            modalClose.addEventListener('click', () => modal.style.display = 'none');
-            window.addEventListener('click', (event) => {
-                if (event.target === modal) modal.style.display = 'none';
-            });
-            
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (this.dataset.time) {
-                        handleTimeFilterClick.call(this);
-                    } else {
-                        handleFilterClick.call(this);
+            // Verificar lembretes periodicamente
+            function checkReminders() {
+                const now = new Date().getTime();
+                
+                Object.keys(reminders).forEach(id => {
+                    const reminder = reminders[id];
+                    const movieTime = reminder.time;
+                    const fiveMinutesBefore = movieTime - (5 * 60 * 1000);
+                    
+                    if (!reminder.notified && now >= fiveMinutesBefore && now < movieTime) {
+                        showNotification(reminder);
+                        reminder.notified = true;
+                        reminders[id] = reminder;
+                        localStorage.setItem('filmReminders', JSON.stringify(reminders));
                     }
                 });
+            }
+            
+            // Mostrar notificação
+            function showNotification(reminder) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification(`🎬 ${reminder.title}`, {
+                        body: `Começa em 5 minutos no ${reminder.channel}`,
+                        icon: 'https://i.postimg.cc/BvbCr0jH/IMG-6850.png'
+                    });
+                } else {
+                    // Fallback para alerta se notificações não forem permitidas
+                    alert(`⏰ Lembrete: ${reminder.title} começa em 5 minutos no ${reminder.channel}`);
+                }
+            }
+            
+            // Verificar lembretes a cada minuto
+            setInterval(checkReminders, 60000);
+            
+            // Evento para os botões de lembrete
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('set-reminder-btn')) {
+                    const title = e.target.dataset.titulo;
+                    const channel = e.target.dataset.canal;
+                    const time = parseInt(e.target.dataset.horario);
+                    
+                    addReminder(title, channel, time);
+                }
             });
             
-            // Funções principais
+            // Pedir permissão quando a página carrega
+            requestNotificationPermission();
+            
+            // =============================================
+            // FUNÇÕES EXISTENTES (com pequenas adaptações)
+            // =============================================
+            
             function updateCurrentTime() {
                 const now = new Date();
                 currentTimeDisplay.textContent = now.toLocaleTimeString('pt-BR', {
@@ -1541,6 +1595,13 @@
                                 
                                 const channel = filme.getAttribute("channel");
                                 const start = filme.getAttribute("start");
+                                const startTime = new Date(
+                                    parseInt(start.slice(0, 4)),
+                                    parseInt(start.slice(4, 6)) - 1,
+                                    parseInt(start.slice(6, 8)),
+                                    parseInt(start.slice(8, 10)),
+                                    parseInt(start.slice(10, 12))
+                                );
                                 const horario = start ? start.slice(8, 10) + ":" + start.slice(10, 12) : "--:--";
                                 
                                 // Formata a data completa para exibição
@@ -1602,8 +1663,11 @@
                                     <button class="mt-2 w-full py-1 bg-vibrant-orange text-white rounded text-xs hover:bg-orange-600 transition-colors ver-trailer-btn" data-titulo="${titleRaw}">
                                         Ver Trailer
                                     </button>
-                                    <button class="mt-2 w-full py-1 bg-favorite-yellow text-black rounded text-xs hover:bg-yellow-400 transition-colors lembrete-btn" data-titulo="${titleRaw}" data-inicio="${start}">
-                                        ⏰ Ativar Lembrete
+                                    <button class="mt-2 w-full py-1 bg-reminder-yellow text-gray-800 rounded text-xs hover:bg-yellow-400 transition-colors set-reminder-btn" 
+                                            data-titulo="${titleRaw}" 
+                                            data-horario="${startTime.getTime()}" 
+                                            data-canal="${channel}">
+                                        ⏰ Definir Lembrete
                                     </button>
                                 `;
                                 container.appendChild(card);
@@ -1656,6 +1720,67 @@
                 
                 return `https://via.placeholder.com/300x450?text=${encodeURIComponent(tituloOriginal)}`;
             }
+
+            // Inicialização
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Configurar botão voltar ao topo
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('hidden');
+                } else {
+                    backToTopButton.classList.add('hidden');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // Configurar modal de trailer
+            trailerClose.addEventListener('click', () => {
+                trailerModal.style.display = 'none';
+                // Remove o iframe quando o modal é fechado
+                const iframe = trailerContainer.querySelector('iframe');
+                if (iframe) {
+                    iframe.remove();
+                }
+                trailerNotFound.classList.add('hidden');
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === trailerModal) {
+                    trailerModal.style.display = 'none';
+                    // Remove o iframe quando o modal é fechado
+                    const iframe = trailerContainer.querySelector('iframe');
+                    if (iframe) {
+                        iframe.remove();
+                    }
+                    trailerNotFound.classList.add('hidden');
+                }
+            });
+            
+            fetchEPGData();
+            carregarFilmes();
+            
+            // Event Listeners
+            channelSearch.addEventListener('input', handleSearch);
+            reloadButton.addEventListener('click', handleReload);
+            modalClose.addEventListener('click', () => modal.style.display = 'none');
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) modal.style.display = 'none';
+            });
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.dataset.time) {
+                        handleTimeFilterClick.call(this);
+                    } else {
+                        handleFilterClick.call(this);
+                    }
+                });
+            });
         });
     </script>
 <div class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden items-center justify-center" id="trailerModal">
@@ -1666,49 +1791,5 @@
 </div>
 </div>
 </div>
-
-<script>
-function pedirPermissaoNotificacao() {
-    if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    pedirPermissaoNotificacao();
-
-    document.querySelectorAll(".lembrete-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const titulo = btn.dataset.titulo;
-            const inicio = btn.dataset.inicio;
-            const horario = new Date(
-                parseInt(inicio.substring(0,4)),
-                parseInt(inicio.substring(4,6)) - 1,
-                parseInt(inicio.substring(6,8)),
-                parseInt(inicio.substring(8,10)),
-                parseInt(inicio.substring(10,12))
-            );
-            const lembrete = new Date(horario.getTime() - 5 * 60000);
-            const agora = new Date();
-            const tempoParaNotificar = lembrete.getTime() - agora.getTime();
-
-            if (tempoParaNotificar > 0) {
-                setTimeout(() => {
-                    if (Notification.permission === "granted") {
-                        new Notification("MaxPlay TV", {
-                            body: `🎬 O filme "${titulo}" começa em 5 minutos!`,
-                            icon: "https://i.postimg.cc/BvbCr0jH/IMG-6850.png"
-                        });
-                    }
-                }, tempoParaNotificar);
-                alert("Lembrete ativado! Você será notificado 5 minutos antes do filme.");
-            } else {
-                alert("O horário do lembrete já passou ou está muito próximo.");
-            }
-        });
-    });
-});
-</script>
 </body>
-
 </html>
