@@ -65,25 +65,18 @@ button:hover {
 .remember input {
     margin-right: 8px;
 }
+.show-password {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    justify-content: flex-start;
+}
+.show-password input {
+    margin-right: 8px;
+}
 .error-message {
     color: #f87171;
     font-size: 0.85rem;
     margin-top: 10px;
-}
-.password-wrapper {
-    position: relative;
-}
-.password-wrapper input[type="password"],
-.password-wrapper input[type="text"] {
-    width: 100%;
-    padding-right: 40px;
-}
-.toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #ccc;
-    font-size: 1.1rem;
 }
