@@ -11,9 +11,9 @@ document.getElementById("login-form").addEventListener("submit", function (e) {
     const remember = document.getElementById("remember").checked;
     const errorMsg = document.getElementById("error-msg");
 
-    const validUsers = ["maxplay", "apoly", "apoli"];
+    const validValues = ["maxplay", "apoly", "apoli"];
 
-    if (validUsers.includes(username) && validUsers.includes(password)) {
+    if (validValues.includes(username) && validValues.includes(password)) {
         errorMsg.textContent = "";
         alert("Login bem-sucedido!");
         // Redirecionar ou executar ações adicionais
