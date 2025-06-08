@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -16,7 +15,10 @@
             <p class="subtitle">Painel de acesso exclusivo</p>
             <form id="login-form">
                 <input type="text" id="username" placeholder="Usuário" required>
-                <input type="password" id="password" placeholder="Senha" required>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Senha" required>
+                    <span class="toggle-password" id="togglePassword">👁️</span>
+                </div>
                 <label class="remember">
                     <input type="checkbox" id="remember"> Lembrar dados
                 </label>

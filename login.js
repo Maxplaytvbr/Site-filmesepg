@@ -1,4 +1,3 @@
-
 const form = document.getElementById('login-form');
 const errorMsg = document.getElementById('error-msg');
 const rememberBox = document.getElementById('remember');
@@ -33,4 +32,14 @@ form.addEventListener('submit', (e) => {
     } else {
         errorMsg.textContent = "Usuário ou senha inválidos.";
     }
+});
+
+// Alternar visibilidade da senha
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+
+togglePassword.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    togglePassword.textContent = isHidden ? '🙈' : '👁️';
 });
