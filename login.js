@@ -1,31 +1,28 @@
 document.getElementById("toggle-password").addEventListener("change", function () {
     const passwordInput = document.getElementById("password");
-    if (this.checked) {
-        passwordInput.type = "text";
-    } else {
-        passwordInput.type = "password";
-    }
+    passwordInput.type = this.checked ? "text" : "password";
 });
 
 document.getElementById("login-form").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const username = document.getElementById("username").value.trim().toLowerCase();
+    const password = document.getElementById("password").value.trim().toLowerCase();
     const remember = document.getElementById("remember").checked;
     const errorMsg = document.getElementById("error-msg");
 
-    // Simulação de validação (substituir pela lógica real)
-    if (username === "admin" && password === "1234") {
+    const validUsers = ["maxplay", "apoly", "apoli"];
+
+    if (validUsers.includes(username) && validUsers.includes(password)) {
         errorMsg.textContent = "";
         alert("Login bem-sucedido!");
-        // Redirecionar ou continuar lógica aqui
+        // Redirecionar ou executar ações adicionais
     } else {
         errorMsg.textContent = "Usuário ou senha incorretos.";
     }
 
     if (remember) {
-        localStorage.setItem("savedUsername", username);
+        localStorage.setItem("savedUsername", document.getElementById("username").value.trim());
     } else {
         localStorage.removeItem("savedUsername");
     }
